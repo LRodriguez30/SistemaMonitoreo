@@ -1,0 +1,842 @@
+<section class="bg-white border border-gray-200 rounded-2xl overflow-hidden flex flex-col h-[500px] w-full min-w-0">
+
+    <!-- TOP ACTION BAR -->
+    <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between gap-4 shrink-0">
+
+        <!-- LEFT -->
+        <div class="flex items-center gap-4">
+
+            <div class="flex flex-col">
+                <span class="text-sm font-semibold tracking-wide text-gray-800">
+                    Métricas
+                </span>
+
+                <span class="text-[11px] text-gray-400">
+                    Monitoreo de registros
+                </span>
+            </div>
+
+            <div class="px-2 py-1 rounded-lg bg-gray-100 text-gray-600 text-xs font-medium">
+                {{ dataSource.data.length }} registros
+            </div>
+
+        </div>
+
+        <!-- RIGHT -->
+        <div class="flex items-center gap-3">
+
+            <!-- SEARCH -->
+            <div class="flex items-center gap-2
+                  px-3 h-10
+                  rounded-xl
+                  border border-gray-200
+                  bg-gray-50
+                  text-gray-500">
+
+                <iconify-icon icon="lucide:search"></iconify-icon>
+
+                <input type="text" placeholder="Buscar métrica..." class="bg-transparent outline-none text-sm w-52" />
+
+            </div>
+
+            <!-- REFRESH -->
+            <button class="toolbar-btn" (click)="loadData()">
+
+                <iconify-icon icon="lucide:refresh-cw"></iconify-icon>
+
+            </button>
+
+            <!-- FILTER -->
+            <button class="toolbar-btn">
+
+                <iconify-icon icon="lucide:filter"></iconify-icon>
+
+            </button>
+
+            <!-- CREATE -->
+            <button class="create-btn">
+
+                <iconify-icon icon="lucide:plus"></iconify-icon>
+
+                <span>Nuevo registro</span>
+
+            </button>
+
+        </div>
+
+    </div>
+
+    <!-- LOADING -->
+    @if (!isLoaded()) {
+
+    <div class="flex-1 flex flex-col items-center justify-center gap-5 bg-gradient-to-b from-white to-gray-50/80">
+
+        <!-- LOADER -->
+        <div class="relative">
+
+            <!-- OUTER -->
+            <div
+                class="w-16 h-16 rounded-2xl border border-blue-100 bg-white/80 backdrop-blur-sm shadow-sm flex items-center justify-center">
+
+                <!-- SPINNER -->
+                <div class="w-8 h-8 border-[2.5px] border-blue-200 border-t-blue-600 rounded-full animate-spin">
+                </div>
+
+            </div>
+
+            <!-- GLOW -->
+            <div class="absolute inset-0 rounded-2xl bg-blue-500/10 blur-xl animate-pulse">
+            </div>
+
+        </div>
+
+        <!-- TEXT -->
+        <div class="flex flex-col items-center gap-1">
+
+            <span class="text-sm font-semibold tracking-wide text-gray-700 animate-pulse">
+                Cargando datos
+            </span>
+
+            <span class="text-[11px] tracking-[0.18em] uppercase text-gray-400">
+                sincronizando registros
+            </span>
+
+        </div>
+
+    </div>
+
+    }
+
+    <!-- TABLE -->
+    @if (isLoaded() && dataSource.data.length > 0) {
+
+    <div class="flex-1 min-w-0 overflow-hidden">
+
+        <!-- SCROLL INTERNO -->
+        <div class="w-full h-full overflow-auto">
+
+            <table mat-table [dataSource]="dataSource" class="premium-table w-full table-auto border-collapse">
+
+                @for (col of displayedColumns; track col) {
+
+                <ng-container [matColumnDef]="col">
+
+                    <!-- HEADER -->
+                    <th mat-header-cell *matHeaderCellDef>
+
+                        {{ columnLabels[col] }}
+
+                    </th>
+
+                    <!-- CELL -->
+                    <td mat-cell *matCellDef="let e">
+
+                        <!-- STATUS -->
+                        @if (col === 'actions') {
+
+                        <button mat-icon-button [matMenuTriggerFor]="actionsMenu" class="action-button">
+
+                            <mat-icon>more_vert</mat-icon>
+
+                        </button>
+
+                        <mat-menu #actionsMenu="matMenu">
+
+                            <button mat-menu-item (click)="updateMetrica(e)">
+                                <mat-icon>edit</mat-icon>
+                                <span>Actualizar</span>
+                            </button>
+
+                            <button mat-menu-item (click)="deleteMetrica(e)">
+                                <mat-icon>delete</mat-icon>
+                                <span>Eliminar</span>
+                            </button>
+
+                        </mat-menu>
+
+                        }
+
+                        @else if (col === 'tipoMetrica') {
+
+                        <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium"
+                            [ngClass]="getTipoMetricaClass(e[col])">
+
+                            <mat-icon class="!text-[14px] !w-3 !h-3 mr-1">
+                                {{ getTipoMetricaIcon(e[col]) }}
+                            </mat-icon>
+
+                            {{ getTipoMetricaLabel(e[col]) }}
+
+                        </span>
+
+                        }
+
+                        <!-- DEFAULT -->
+                        @else {
+
+                        @switch (columnConfig[col]?.type) {
+
+                        @case ('currency') {
+
+                        <span class="currency-cell" [class.currency-positive]="e[col] > 0"
+                            [class.currency-negative]="e[col] < 0" [class.currency-neutral]="e[col] === 0">
+
+                            {{ e[col] > 0 ? '+' : '' }}
+                            $ {{ e[col] | number:'1.2-2' }}
+
+                        </span>
+
+                        }
+
+                        @case ('date') {
+
+                        <span class="date-cell">
+                            {{ e[col] | date:'dd/MM/yyyy' }}
+                        </span>
+
+                        }
+
+                        @case ('datetime') {
+
+                        <span class="datetime-cell">
+                            {{ e[col] | date:'dd/MM/yyyy HH:mm' }}
+                        </span>
+
+                        }
+
+                        @case ('number') {
+
+                        <span class="number-cell">
+                            {{ e[col] }}
+                        </span>
+
+                        }
+
+                        @default {
+
+                        <span class="cell-content">
+                            {{ e[col] }}
+                        </span>
+
+                        }
+
+                        }
+
+                        }
+
+                    </td>
+
+                </ng-container>
+
+                }
+
+                <!-- HEADER ROW -->
+                <tr mat-header-row *matHeaderRowDef="displayedColumns">
+                </tr>
+
+                <!-- DATA ROW -->
+                <tr mat-row *matRowDef="let row; columns: displayedColumns" class="table-row">
+                </tr>
+
+            </table>
+
+        </div>
+
+    </div>
+
+    }
+
+    <!-- EMPTY STATE -->
+    @if (isLoaded() && dataSource.data.length === 0) {
+
+    <div class="flex-1 flex items-center justify-center p-6">
+
+        <div class="flex flex-col items-center gap-4 text-center max-w-sm">
+
+            <!-- ICON -->
+            <div class="w-16 h-16 rounded-2xl
+                    border border-gray-200
+                    bg-gray-50
+                    flex items-center justify-center
+                    text-gray-400">
+
+                <iconify-icon icon="lucide:database-search" width="30">
+                </iconify-icon>
+
+            </div>
+
+            <!-- TEXT -->
+            <div class="flex flex-col gap-1">
+
+                <span class="text-sm font-semibold text-gray-700">
+                    No hay registros disponibles
+                </span>
+
+                <span class="text-[12px] text-gray-400 leading-relaxed">
+                    No se encontraron métricas para mostrar en este momento.
+                </span>
+
+            </div>
+
+            <!-- ACTION -->
+            <button class="refresh-empty-btn cursor-pointer" (click)="loadData()">
+
+                <iconify-icon icon="lucide:refresh-cw"></iconify-icon>
+
+                <span>Actualizar registros</span>
+
+            </button>
+
+        </div>
+
+    </div>
+
+    }
+
+</section>
+
+<style>
+    :host {
+
+        display: block;
+
+        width: 100%;
+
+        min-width: 0;
+    }
+
+    .premium-table {
+
+        width: 100%;
+
+        table-layout: auto;
+
+        .mat-mdc-header-cell {
+
+            position: sticky;
+
+            top: 0;
+
+            z-index: 10;
+
+            background: #fafafa;
+
+            border-bottom: 1px solid #e5e7eb;
+
+            padding: 14px 18px;
+
+            white-space: nowrap;
+
+            font-size: 11px;
+
+            font-weight: 700;
+
+            text-transform: uppercase;
+
+            letter-spacing: .14em;
+
+            color: #6b7280;
+        }
+
+        .mat-mdc-cell {
+
+            padding: 14px 18px;
+
+            border-bottom: 1px solid #f1f5f9;
+
+            white-space: nowrap;
+        }
+    }
+
+    .table-row {
+
+        transition:
+            background-color .18s ease,
+            transform .15s ease;
+    }
+
+    .table-row:hover {
+
+        background:
+            linear-gradient(to right,
+                rgba(248, 250, 252, .95),
+                rgba(255, 255, 255, 1));
+    }
+
+    .cell-content {
+
+        display: block;
+
+        overflow: hidden;
+
+        text-overflow: ellipsis;
+
+        font-family:
+            'JetBrains Mono',
+            'IBM Plex Mono',
+            monospace;
+
+        font-size: 13px;
+
+        letter-spacing: .03em;
+
+        color: #374151;
+    }
+
+    .currency-cell {
+
+        display: flex;
+
+        justify-content: flex-end;
+
+        align-items: center;
+
+        gap: 4px;
+
+        font-family:
+            'JetBrains Mono',
+            monospace;
+
+        font-size: 13px;
+
+        font-weight: 700;
+
+        letter-spacing: .02em;
+
+        transition:
+            color .15s ease,
+            transform .12s ease;
+    }
+
+    /* POSITIVE */
+    .currency-positive {
+
+        color: #059669;
+    }
+
+    /* NEGATIVE */
+    .currency-negative {
+
+        color: #dc2626;
+    }
+
+    /* ZERO */
+    .currency-neutral {
+
+        color: #6b7280;
+    }
+
+    .number-cell {
+
+        display: flex;
+
+        justify-content: center;
+
+        font-family:
+            'JetBrains Mono',
+            monospace;
+
+        font-size: 13px;
+
+        color: #374151;
+    }
+
+    .date-cell,
+    .datetime-cell {
+
+        font-family:
+            'IBM Plex Mono',
+            monospace;
+
+        font-size: 12px;
+
+        color: #6b7280;
+
+        letter-spacing: .03em;
+    }
+
+    .status-chip {
+
+        display: inline-flex;
+
+        align-items: center;
+
+        padding: 5px 10px;
+
+        border-radius: 999px;
+
+        border-width: 1px;
+
+        font-size: 11px;
+
+        font-weight: 700;
+
+        letter-spacing: .04em;
+    }
+
+    .mat-column-idVenta {
+
+        width: 240px;
+
+        min-width: 240px;
+    }
+
+    .mat-column-idCliente {
+
+        width: 200px;
+
+        min-width: 200px;
+    }
+
+    .mat-column-fechaVenta {
+
+        width: 180px;
+
+        min-width: 180px;
+    }
+
+    .mat-column-total {
+
+        width: 120px;
+
+        min-width: 120px;
+
+        text-align: right;
+    }
+
+    .mat-column-estado {
+
+        width: 140px;
+
+        min-width: 140px;
+    }
+
+    .mat-column-actions {
+
+        width: 90px;
+
+        min-width: 90px;
+    }
+
+
+    .action-button {
+
+        width: 34px;
+        height: 34px;
+
+        border-radius: 10px;
+
+        transition:
+            background-color .15s ease,
+            transform .12s ease;
+    }
+
+    .action-button:hover {
+
+        background: rgba(0, 0, 0, .045);
+    }
+
+    .action-button:active {
+
+        transform: scale(.96);
+    }
+
+    .mat-mdc-menu-panel {
+
+        border-radius: 16px !important;
+
+        border: 1px solid #e5e7eb;
+
+        box-shadow:
+            0 10px 30px rgba(0, 0, 0, .08) !important;
+    }
+
+    .mat-mdc-menu-item {
+
+        min-height: 42px;
+
+        font-size: 13px;
+    }
+
+
+    .toolbar-btn {
+
+        width: 40px;
+        height: 40px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        border-radius: 12px;
+
+        border: 1px solid #e5e7eb;
+
+        background: white;
+
+        color: #6b7280;
+
+        cursor: pointer;
+
+        transition:
+            background-color .18s ease,
+            border-color .18s ease,
+            transform .14s ease,
+            box-shadow .18s ease,
+            color .18s ease;
+    }
+
+    .toolbar-btn:hover {
+
+        background: #f8fafc;
+
+        border-color: #cbd5e1;
+
+        color: #2563eb;
+
+        transform: translateY(-1px);
+
+        box-shadow:
+            0 4px 14px rgba(15, 23, 42, .06);
+    }
+
+    .toolbar-btn:active {
+
+        transform: scale(.95);
+    }
+
+    .create-btn {
+
+        height: 40px;
+
+        padding: 0 16px;
+
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        border-radius: 12px;
+
+        border: 1px solid rgba(59, 130, 246, .18);
+
+        background:
+            linear-gradient(180deg,
+                #3b82f6 0%,
+                #2563eb 100%);
+
+        color: white;
+
+        font-size: 13px;
+        font-weight: 600;
+
+        letter-spacing: .02em;
+
+        cursor: pointer;
+
+        box-shadow:
+            0 4px 12px rgba(37, 99, 235, .18);
+
+        transition:
+            transform .14s ease,
+            box-shadow .18s ease,
+            filter .18s ease;
+    }
+
+    .create-btn:hover {
+
+        transform: translateY(-1px);
+
+        filter: brightness(1.02);
+
+        box-shadow:
+            0 8px 22px rgba(37, 99, 235, .28);
+    }
+
+    .create-btn:active {
+
+        transform: scale(.97);
+    }
+
+    .action-button {
+
+        width: 34px;
+        height: 34px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        border-radius: 10px;
+
+        cursor: pointer;
+
+        color: #6b7280;
+
+        transition:
+            background-color .16s ease,
+            transform .12s ease,
+            color .16s ease,
+            box-shadow .16s ease;
+    }
+
+    .action-button:hover {
+
+        background: rgba(59, 130, 246, .08);
+
+        color: #2563eb;
+
+        transform: translateY(-1px);
+
+        box-shadow:
+            0 4px 10px rgba(37, 99, 235, .08);
+    }
+
+    .action-button:active {
+
+        transform: scale(.94);
+    }
+
+    .table-row {
+
+        cursor: pointer;
+
+        transition:
+            background-color .18s ease,
+            transform .14s ease,
+            box-shadow .18s ease;
+    }
+
+    .table-row:hover {
+
+        background:
+            linear-gradient(to right,
+                rgba(248, 250, 252, .95),
+                rgba(255, 255, 255, 1));
+
+        box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, .5);
+
+        transform: scale(0.998);
+    }
+
+    .table-row:active {
+
+        transform: scale(.997);
+    }
+
+    .cell-content {
+
+        display: block;
+
+        overflow: hidden;
+
+        text-overflow: ellipsis;
+
+        font-family:
+            'JetBrains Mono',
+            'IBM Plex Mono',
+            monospace;
+
+        font-size: 13px;
+
+        letter-spacing: .03em;
+
+        color: #374151;
+
+        transition:
+            color .16s ease,
+            transform .14s ease;
+    }
+
+    .table-row:hover .cell-content {
+
+        color: #111827;
+    }
+
+    .status-chip {
+
+        display: inline-flex;
+
+        align-items: center;
+
+        padding: 5px 10px;
+
+        border-radius: 999px;
+
+        border-width: 1px;
+
+        font-size: 11px;
+
+        font-weight: 700;
+
+        letter-spacing: .04em;
+
+        transition:
+            transform .14s ease,
+            box-shadow .16s ease,
+            filter .16s ease;
+    }
+
+    .table-row:hover .status-chip {
+
+        transform: translateY(-1px);
+
+        box-shadow:
+            0 2px 8px rgba(0, 0, 0, .05);
+    }
+
+
+
+    .refresh-empty-btn {
+
+        display: inline-flex;
+
+        align-items: center;
+
+        gap: 10px;
+
+        height: 40px;
+
+        padding: 0 16px;
+
+        border-radius: 14px;
+
+        border: 1px solid #dbeafe;
+
+        background:
+            linear-gradient(to bottom,
+                #ffffff,
+                #f8fbff);
+
+        color: #2563eb;
+
+        font-size: 13px;
+
+        font-weight: 600;
+
+        cursor: pointer;
+
+        transition:
+            transform .15s ease,
+            box-shadow .18s ease,
+            background-color .18s ease;
+    }
+
+    .refresh-empty-btn:hover {
+
+        transform: translateY(-1px);
+
+        box-shadow:
+            0 8px 18px rgba(37, 99, 235, .10);
+
+        background:
+            linear-gradient(to bottom,
+                #ffffff,
+                #eff6ff);
+    }
+
+    .refresh-empty-btn:active {
+
+        transform: scale(.98);
+    }
+</style>
