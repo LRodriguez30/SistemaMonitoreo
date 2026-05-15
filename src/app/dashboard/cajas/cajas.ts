@@ -164,11 +164,21 @@ export class Cajas {
             switch (field.type) {
 
                 case 'number':
-                    acc[field.key] = 1;
+                    acc[field.key] = +(Math.random() * (1500 - 200) + 200).toFixed(2);
+                    break;
+
+                case 'int':
+                    acc[field.key] = Math.floor(Math.random() * (75 - 3 + 1)) + 3;
                     break;
 
                 case 'select':
-                    acc[field.key] = field.options?.[0]?.value ?? '';
+                    const options = field.options ?? [];
+
+                    acc[field.key] =
+                        options.length > 0
+                            ? options[Math.floor(Math.random() * options.length)].value
+                            : '';
+
                     break;
 
                 case 'guid':
@@ -259,6 +269,7 @@ export class Cajas {
 
         this.originalFormState = structuredClone(this.formState);
         this.isUpdateOpen.set(true);
+        this.updateFormValidity();
     }
 
     submitUpdate() {
@@ -388,12 +399,16 @@ export class Cajas {
     // =========================================================
     private updateFormValidity() {
 
-        if (!this.createModel) {
+        const model = this.isUpdateOpen()
+            ? this.updateModel
+            : this.createModel;
+
+        if (!model) {
             this.isFormValid.set(false);
             return;
         }
 
-        for (const field of this.createModel.fields) {
+        for (const field of model.fields) {
 
             const value = this.formState[field.key];
 
@@ -418,7 +433,7 @@ export class Cajas {
                 }
             }
 
-            if (field.type === 'number') {
+            if (field.type === 'number' || field.type === 'int') {
 
                 const num = Number(value);
 
@@ -502,7 +517,7 @@ export class Cajas {
     // =========================================================
     // EVENT TYPE MAPPING
     // =========================================================
-    getEventoClass(tipo: string): string { /* unchanged */ 
+    getEventoClass(tipo: string): string { /* unchanged */
         switch (this.normalize(tipo)) {
             case 'APERTURA': return 'bg-emerald-700/90 text-emerald-50';
             case 'CIERRE': return 'bg-zinc-700/90 text-zinc-50';

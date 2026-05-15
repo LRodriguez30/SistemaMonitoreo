@@ -25,22 +25,20 @@ export class GenericCreateComponent {
         @Inject(MAT_DIALOG_DATA) public data: DynamicCreateModel
     ) {
 
-        // 👇 IMPORTANTE: asignar fields desde data
         this.fields = data.fields;
 
-const group: any = {};
+        const group: any = {};
 
-this.fields.forEach(f => {
+        this.fields.forEach(f => {
 
-    // 👇 si es GUID, lo generas automático
-    this.fields.forEach(f => {
-        group[f.key] = this.generateExampleValue(f);
-    });
+            this.fields.forEach(f => {
+                group[f.key] = this.generateExampleValue(f);
+            });
 
-    group[f.key] = f.required
-        ? ['', Validators.required]
-        : [''];
-});
+            group[f.key] = f.required
+                ? ['', Validators.required]
+                : [''];
+        });
         this.form = this.fb.group(group);
     }
 
@@ -63,28 +61,28 @@ this.fields.forEach(f => {
 
     private generateExampleValue(field: FieldConfig): any {
 
-    switch (field.type) {
+        switch (field.type) {
 
-        case 'guid':
-            return this.generateGuid();
+            case 'guid':
+                return this.generateGuid();
 
-        case 'number':
-            return 1200;
+            case 'number':
+                return 1200;
 
-        case 'select':
-            return field.options?.[0]?.value ?? '';
+            case 'select':
+                return field.options?.[0]?.value ?? '';
 
-        case 'text':
-            return 'Entrada a Caja';
+            case 'text':
+                return 'Entrada a Caja';
 
-        case 'date':
-            return new Date().toISOString().split('T')[0];
+            case 'date':
+                return new Date().toISOString().split('T')[0];
 
-        case 'datetime':
-            return new Date().toISOString();
+            case 'datetime':
+                return new Date().toISOString();
 
-        default:
-            return '';
+            default:
+                return '';
+        }
     }
-}
 }

@@ -17,7 +17,7 @@ export interface VentasResponse {
   actualizadoPor: string;
 }
 
-export interface CreateVentas {
+export interface CreateVenta {
   idSucursal: string;
   idCliente: string;
   metodoPago: string;
@@ -27,7 +27,7 @@ export interface CreateVentas {
   creadoPor: string;
 }
 
-export interface UpdateVentas {
+export interface UpdateVenta {
   idCliente: string;
   metodoPago: string;
   total: number;
@@ -49,7 +49,7 @@ export class VentasService {
     return this.http.get<VentasResponse[]>(`${this.url}`);
   }
 
-  createVenta(data: CreateVentas) {
+  createVenta(data: CreateVenta) {
     return this.http.post(`${this.url}`, data);
   }
 
@@ -57,7 +57,7 @@ export class VentasService {
     return this.http.delete(`${this.url}/${idSucursal}/${idVenta}`);
   }
 
-  updateVenta(idSucursal: string, idVenta: string, data: UpdateVentas) {
+  updateVenta(idSucursal: string, idVenta: string, data: UpdateVenta) {
     return this.http.put(`${this.url}/${idSucursal}/${idVenta}`, data);
   }
 }
