@@ -9,6 +9,19 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { DynamicCreateModel } from '../../helpers/fieldConfig';
 
+type UpdateModalAction = 'close' | 'reset';
+
+interface VentaFilter {
+    estado: string[];
+    metodoPago: string[];
+    totalMin: number | null;
+    totalMax: number | null;
+    fechaDesde: string;
+    fechaHasta: string;
+    idSucursal: string;
+    idCliente: string;
+}
+
 @Component({
     selector: 'app-ventas',
     standalone: true,
@@ -20,11 +33,12 @@ import { DynamicCreateModel } from '../../helpers/fieldConfig';
         MatButtonModule
     ],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    templateUrl: './ventas.html'
+    templateUrl: './ventas.html',
+    styleUrl: './ventas.css'
 })
 export class Ventas {
     // =========================================================
-    // STATE (UI FLAGS)
+    // STATE
     // =========================================================
     isLoaded = signal(false);
 
@@ -46,6 +60,8 @@ export class Ventas {
     isCreateOpen = signal(false);
     isSubmitting = signal(false);
 
+    hideGuidColumns = signal(true);
+
     // =========================================================
     // DATA MODELS
     // =========================================================
@@ -55,15 +71,174 @@ export class Ventas {
     updateModel: DynamicCreateModel | null = null;
     createModel: DynamicCreateModel | null = null;
 
-    formState: Record<string, any> = {};
+    formCreateState: Record<string, any> = {};
+    formUpdateState: Record<string, any> = {};
     originalFormState: Record<string, any> = {};
 
     dataSource = new MatTableDataSource<VentasResponse>();
 
     // =========================================================
+    // FILTER STATE
+    // =========================================================
+    isFilterOpen = signal(false);
+    activeFilterCount = signal(0);
+
+    filterState: VentaFilter = {
+        estado: [],
+        metodoPago: [],
+        totalMin: null,
+        totalMax: null,
+        fechaDesde: '',
+        fechaHasta: '',
+        idSucursal: '',
+        idCliente: ''
+    };
+
+    estadoOptions = ['PENDIENTE', 'PROCESANDO', 'PAGADA', 'COMPLETADA', 'CANCELADA', 'ANULADA', 'REEMBOLSADA', 'DEVUELTA'];
+    metodoPagoOptions = ['EFECTIVO', 'TARJETA_CREDITO', 'TARJETA_DEBITO', 'TRANSFERENCIA_BANCARIA', 'CHEQUE', 'OTRO'];
+
+    openFilter() {
+        this.isFilterOpen.set(true);
+    }
+
+    closeFilter() {
+        this.isFilterOpen.set(false);
+    }
+
+    toggleEstado(valor: string) {
+        const idx = this.filterState.estado.indexOf(valor);
+        this.filterState.estado = idx === -1
+            ? [...this.filterState.estado, valor]
+            : this.filterState.estado.filter(e => e !== valor);
+    }
+
+    toggleMetodoPago(valor: string) {
+        const idx = this.filterState.metodoPago.indexOf(valor);
+        this.filterState.metodoPago = idx === -1
+            ? [...this.filterState.metodoPago, valor]
+            : this.filterState.metodoPago.filter(m => m !== valor);
+    }
+
+    applyFilter() {
+        const f = this.filterState;
+
+        this.dataSource.filterPredicate = (row: VentasResponse) => {
+
+            if (f.estado.length > 0 && !f.estado.includes(row.estado)) return false;
+
+            if (f.metodoPago.length > 0 && !f.metodoPago.includes(row.metodoPago)) return false;
+
+            if (f.totalMin !== null && row.total < f.totalMin) return false;
+            if (f.totalMax !== null && row.total > f.totalMax) return false;
+
+            if (f.fechaDesde) {
+                const desde = new Date(f.fechaDesde);
+                if (new Date(row.fechaVenta) < desde) return false;
+            }
+
+            if (f.fechaHasta) {
+                const hasta = new Date(f.fechaHasta);
+                hasta.setHours(23, 59, 59);
+                if (new Date(row.fechaVenta) > hasta) return false;
+            }
+
+            if (f.idSucursal && !row.idSucursal.toLowerCase().includes(f.idSucursal.toLowerCase())) return false;
+
+            if (f.idCliente && !row.idCliente.toLowerCase().includes(f.idCliente.toLowerCase())) return false;
+
+            return true;
+        };
+
+        this.dataSource.filter = 'active';
+
+        let count = 0;
+        if (f.estado.length > 0) count++;
+        if (f.metodoPago.length > 0) count++;
+        if (f.totalMin !== null || f.totalMax !== null) count++;
+        if (f.fechaDesde || f.fechaHasta) count++;
+        if (f.idSucursal) count++;
+        if (f.idCliente) count++;
+
+        this.activeFilterCount.set(count);
+        this.closeFilter();
+    }
+
+    clearFilter() {
+        this.filterState = {
+            estado: [],
+            metodoPago: [],
+            totalMin: null,
+            totalMax: null,
+            fechaDesde: '',
+            fechaHasta: '',
+            idSucursal: '',
+            idCliente: ''
+        };
+
+        this.dataSource.filter = '';
+        this.activeFilterCount.set(0);
+        this.closeFilter();
+    }
+
+    applyGlobalFilter(event: Event) {
+
+        const value =
+            (event.target as HTMLInputElement)
+                .value
+                .trim()
+                .toLowerCase();
+
+        this.dataSource.filter = value;
+    }
+
+    private globalFilterPredicate() {
+
+        return (
+            row: VentasResponse,
+            filter: string
+        ) => {
+
+            const searchableText = `
+                ${row.idVenta}
+                ${row.idSucursal}
+                ${row.idCliente}
+                ${row.estado}
+                ${row.metodoPago}
+                ${row.creadoPor}
+                ${row.actualizadoPor}
+                ${row.total}
+            `
+                .toLowerCase();
+
+            return searchableText.includes(filter);
+        };
+    }
+
+    get visibleColumns(): string[] {
+
+        if (!this.hideGuidColumns()) {
+            return this.displayedColumns;
+        }
+
+        return this.displayedColumns.filter(
+            col => !this.guidColumns.includes(col)
+        );
+    }
+
+    // =========================================================
     // TABLE CONFIG
     // =========================================================
+    guidColumns = [
+        'idSucursal',
+        'idProducto',
+        'idVenta',
+        'idCliente',
+        'creadoPor',
+        'actualizadoPor'
+    ];
+
     displayedColumns: string[] = [
+        'rowIndex',
         'idSucursal',
         'fechaVenta',
         'idVenta',
@@ -80,6 +255,7 @@ export class Ventas {
     ];
 
     columnLabels: Record<string, string> = {
+        rowIndex: 'No.',
         idSucursal: 'ID SUCURSAL',
         fechaVenta: 'FECHA',
         idVenta: 'ID VENTA',
@@ -117,6 +293,8 @@ export class Ventas {
     constructor(
         private readonly ventasService: VentasService
     ) {
+        this.dataSource.filterPredicate =
+            this.globalFilterPredicate();
         this.loadData();
     }
 
@@ -132,7 +310,7 @@ export class Ventas {
             next: (data) => {
                 this.dataSource.data = data;
                 this.isLoaded.set(true);
-                this.dataSource._updateChangeSubscription();
+                this.dataSource.data = [...data];
             },
 
             error: (err) => {
@@ -140,6 +318,10 @@ export class Ventas {
                 this.isLoaded.set(false);
             }
         });
+    }
+
+    getRowIndex(row: VentasResponse): number {
+        return this.dataSource.data.indexOf(row) + 1;
     }
 
     // =========================================================
@@ -194,7 +376,7 @@ export class Ventas {
         };
 
         // init defaults
-        this.formState = this.createModel.fields.reduce((acc, field) => {
+        this.formCreateState = this.createModel.fields.reduce((acc, field) => {
 
             switch (field.type) {
 
@@ -229,7 +411,7 @@ export class Ventas {
         }, {} as Record<string, any>);
 
         this.isCreateOpen.set(true);
-        this.updateFormValidity();
+        this.updateFormValidity('create');
     }
 
     submitCreate() {
@@ -237,13 +419,13 @@ export class Ventas {
         this.isSubmitting.set(true);
 
         const payload: CreateVenta = {
-            idSucursal: this.formState['idSucursal'],
-            idCliente: this.formState['idCliente'],
-            metodoPago: this.formState['metodoPago'],
-            total: Number(this.formState['total']),
-            cantidadProductos: Number(this.formState['cantidadProductos']),
-            estado: this.formState['estado'],
-            creadoPor: this.formState['creadoPor']
+            idSucursal: this.formCreateState['idSucursal'],
+            idCliente: this.formCreateState['idCliente'],
+            metodoPago: this.formCreateState['metodoPago'],
+            total: Number(this.formCreateState['total']),
+            cantidadProductos: Number(this.formCreateState['cantidadProductos']),
+            estado: this.formCreateState['estado'],
+            creadoPor: this.formCreateState['creadoPor']
         };
 
         this.ventasService.createVenta(payload).subscribe({
@@ -254,7 +436,7 @@ export class Ventas {
                 setTimeout(() => {
                     this.isCreateOpen.set(false);
                     this.isClosing.set(false);
-                    this.formState = {};
+                    this.formCreateState = {};
                     this.loadData();
                 }, 200);
             },
@@ -319,7 +501,7 @@ export class Ventas {
             ]
         };
 
-        this.formState = {
+        this.formUpdateState = {
             idSucursal: row.idSucursal,
             idVenta: row.idVenta,
             idCliente: row.idCliente,
@@ -331,9 +513,9 @@ export class Ventas {
             actualizadoPor: row.actualizadoPor
         };
 
-        this.originalFormState = structuredClone(this.formState);
+        this.originalFormState = structuredClone(this.formUpdateState);
         this.isUpdateOpen.set(true);
-        this.updateFormValidity();
+        this.updateFormValidity('update');
     }
 
     submitUpdate() {
@@ -343,13 +525,13 @@ export class Ventas {
         this.isUpdating.set(true);
 
         const payload: UpdateVenta = {
-            idCliente: this.formState['idCliente'],
-            metodoPago: this.formState['metodoPago'],
-            total: Number(this.formState['total']),
-            cantidadProductos: Number(this.formState['cantidadProductos']),
-            estado: this.formState['estado'],
-            creadoPor: this.formState['creadoPor'],
-            actualizadoPor: this.formState['actualizadoPor']
+            idCliente: this.formUpdateState['idCliente'],
+            metodoPago: this.formUpdateState['metodoPago'],
+            total: Number(this.formUpdateState['total']),
+            cantidadProductos: Number(this.formUpdateState['cantidadProductos']),
+            estado: this.formUpdateState['estado'],
+            creadoPor: this.formUpdateState['creadoPor'],
+            actualizadoPor: this.formUpdateState['actualizadoPor']
         };
 
         this.ventasService.updateVenta(
@@ -409,7 +591,7 @@ export class Ventas {
             },
 
             error: (err) => {
-                console.error('Error eliminando', err);
+                console.error('Error eliminando venta', err);
                 this.isDeleting.set(false);
             }
         });
@@ -428,27 +610,32 @@ export class Ventas {
     // =========================================================
     // FORM CONTROL
     // =========================================================
-    setFieldValue(key: string, value: any) {
-        this.formState[key] = value;
+    setFieldValue(key: string, value: any, action: 'create' | 'update') {
+        if (action === 'create') {
+            this.formCreateState[key] = value;
+        } else {
+            this.formUpdateState[key] = value;
+        }
         this.isDirty.set(true);
         this.updateDirtyState();
-        this.updateFormValidity();
+        this.updateFormValidity(action);
     }
 
-    onNumberChange(key: string, event: Event) {
+    onNumberChange(key: string, event: Event, action: 'create' | 'update') {
 
         const value = (event.target as HTMLInputElement).value;
+        const state = action === 'create' ? this.formCreateState : this.formUpdateState;
 
         if (value === '') {
-            this.formState[key] = '';
-            this.updateFormValidity();
+            state[key] = '';
+            this.updateFormValidity(action);
             return;
         }
 
         const parsed = Number(value);
-        this.formState[key] = isNaN(parsed) ? 0 : parsed;
+        state[key] = isNaN(parsed) ? 0 : parsed;
 
-        this.updateFormValidity();
+        this.updateFormValidity(action);
     }
 
     closeModal() {
@@ -465,11 +652,10 @@ export class Ventas {
     // =========================================================
     // VALIDATION
     // =========================================================
-    private updateFormValidity() {
+    private updateFormValidity(action: 'create' | 'update') {
 
-        const model = this.isUpdateOpen()
-            ? this.updateModel
-            : this.createModel;
+        const model = action === 'create' ? this.createModel : this.updateModel;
+        const state = action === 'create' ? this.formCreateState : this.formUpdateState;
 
         if (!model) {
             this.isFormValid.set(false);
@@ -477,8 +663,7 @@ export class Ventas {
         }
 
         for (const field of model.fields) {
-
-            const value = this.formState[field.key];
+            const value = state[field.key];
 
             const isEmpty =
                 value === null ||
@@ -526,7 +711,7 @@ export class Ventas {
     // UPDATE CONTROL HELPERS
     // =========================================================
     hasChanges(): boolean {
-        return JSON.stringify(this.formState) !== JSON.stringify(this.originalFormState);
+        return JSON.stringify(this.formUpdateState) !== JSON.stringify(this.originalFormState);
     }
 
     discardChanges() {
@@ -534,10 +719,10 @@ export class Ventas {
         this.forceCloseUpdate();
     }
 
-    closeUpdateModal(btn?: string) {
+    closeUpdateModal(action: UpdateModalAction = 'close') {
 
-        if (btn === 'Restablecer') {
-            this.formState = structuredClone(this.originalFormState);
+        if (action === 'reset') {
+            this.formUpdateState = structuredClone(this.originalFormState);
             return;
         }
 
@@ -559,7 +744,7 @@ export class Ventas {
     // =========================================================
     private updateDirtyState() {
         this.isDirty.set(
-            JSON.stringify(this.formState) !== JSON.stringify(this.originalFormState)
+            JSON.stringify(this.formUpdateState) !== JSON.stringify(this.originalFormState)
         );
     }
 
@@ -569,17 +754,6 @@ export class Ventas {
             const v = c === 'x' ? r : (r & 0x3) | 0x8;
             return v.toString(16);
         });
-    }
-
-    private normalize(value: string): string {
-        return (value ?? '')
-            .toUpperCase()
-            .replace(/\s+/g, '_')
-            .trim();
-    }
-
-    private isEmpty(value: any): boolean {
-        return value === null || value === undefined || String(value).trim() === '';
     }
 
     // =========================================================
@@ -797,70 +971,70 @@ export class Ventas {
 
     getMontoMeta(estado: string): { sign: string; class: string; prefix: string } {
 
-    switch (estado) {
+        switch (estado) {
 
-        case 'PAGADA':
-            return {
-                sign: '+',
-                prefix: '',
-                class: 'text-emerald-600'
-            };
+            case 'PAGADA':
+                return {
+                    sign: '+',
+                    prefix: '',
+                    class: 'text-emerald-600'
+                };
 
-        case 'COMPLETADA':
-            return {
-                sign: '+',
-                prefix: '',
-                class: 'text-teal-600'
-            };
+            case 'COMPLETADA':
+                return {
+                    sign: '+',
+                    prefix: '',
+                    class: 'text-teal-600'
+                };
 
-        case 'PENDIENTE':
-            return {
-                sign: '~',
-                prefix: '',
-                class: 'text-amber-500'
-            };
+            case 'PENDIENTE':
+                return {
+                    sign: '~',
+                    prefix: '',
+                    class: 'text-amber-500'
+                };
 
-        case 'PROCESANDO':
-            return {
-                sign: '~',
-                prefix: '',
-                class: 'text-blue-600'
-            };
+            case 'PROCESANDO':
+                return {
+                    sign: '~',
+                    prefix: '',
+                    class: 'text-blue-600'
+                };
 
-        case 'CANCELADA':
-            return {
-                sign: '-',
-                prefix: '',
-                class: 'text-rose-600'
-            };
+            case 'CANCELADA':
+                return {
+                    sign: '-',
+                    prefix: '',
+                    class: 'text-rose-600'
+                };
 
-        case 'ANULADA':
-            return {
-                sign: '×',
-                prefix: '',
-                class: 'text-zinc-500'
-            };
+            case 'ANULADA':
+                return {
+                    sign: '×',
+                    prefix: '',
+                    class: 'text-zinc-500'
+                };
 
-        case 'REEMBOLSADA':
-            return {
-                sign: '↺',
-                prefix: '',
-                class: 'text-violet-600'
-            };
+            case 'REEMBOLSADA':
+                return {
+                    sign: '↺',
+                    prefix: '',
+                    class: 'text-violet-600'
+                };
 
-        case 'DEVUELTA':
-            return {
-                sign: '↩',
-                prefix: '',
-                class: 'text-orange-600'
-            };
+            case 'DEVUELTA':
+                return {
+                    sign: '↩',
+                    prefix: '',
+                    class: 'text-orange-600'
+                };
 
-        default:
-            return {
-                sign: '?',
-                prefix: '',
-                class: 'text-slate-500'
-            };
+            default:
+                return {
+                    sign: '?',
+                    prefix: '',
+                    class: 'text-slate-500'
+                };
+        }
     }
-}
 }

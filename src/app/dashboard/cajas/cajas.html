@@ -10,11 +10,8 @@
     <!-- MODAL -->
     <div class="relative z-10 bg-white text-gray-900 p-6 rounded-2xl w-[420px]
                shadow-2xl border border-gray-200
-               transition-all duration-200 ease-out"
-        [class.opacity-0]="isClosing()"
-        [class.scale-95]="isClosing()"
-        [class.translate-y-2]="isClosing()"
-        (click)="$event.stopPropagation()">
+               transition-all duration-200 ease-out" [class.opacity-0]="isClosing()" [class.scale-95]="isClosing()"
+        [class.translate-y-2]="isClosing()" (click)="$event.stopPropagation()">
 
         <h2 class="text-lg font-semibold mb-4">
             {{ createModel?.title }}
@@ -31,11 +28,11 @@
             @if (field.type === 'select') {
 
             <select class="w-full bg-gray-50 border border-gray-200 p-2 rounded-lg"
-                [value]="formState[field.key] ?? ''"
-                (change)="setFieldValue(field.key, $any($event.target).value)">
+                [value]="formCreateState[field.key] ?? ''"
+                (change)="setFieldValue(field.key, $any($event.target).value, 'create')">
 
                 @for (opt of field.options; track opt.value) {
-                <option [value]="opt.value" [selected]="formState[field.key] === opt.value">
+                <option [value]="opt.value" [selected]="formCreateState[field.key] === opt.value">
                     {{ opt.label }}
                 </option>
                 }
@@ -44,19 +41,15 @@
 
             } @else if (field.type === 'number') {
 
-            <input class="w-full bg-gray-50 border border-gray-200 p-2 rounded-lg"
-                type="number" min="1" step="0.01"
-                placeholder="Monto (ej: 10.50)"
-                [value]="formState[field.key] ?? 1"
-                (input)="onNumberChange(field.key, $event)" />
+            <input class="w-full bg-gray-50 border border-gray-200 p-2 rounded-lg" type="number" min="1" step="0.01"
+                placeholder="Monto (ej: 10.50)" [value]="formCreateState[field.key] ?? 1"
+                (input)="onNumberChange(field.key, $event, 'create')" />
 
             } @else {
 
-            <input class="w-full bg-gray-50 border border-gray-200 p-2 rounded-lg"
-                [type]="field.type"
-                [placeholder]="field.label"
-                [value]="formState[field.key] ?? ''"
-                (input)="setFieldValue(field.key, $any($event.target).value)" />
+            <input class="w-full bg-gray-50 border border-gray-200 p-2 rounded-lg" [type]="field.type"
+                [placeholder]="field.label" [value]="formCreateState[field.key] ?? ''"
+                (input)="setFieldValue(field.key, $any($event.target).value, 'create')" />
 
             }
 
@@ -75,8 +68,7 @@
                      active:scale-[0.98]
                      shadow-sm hover:shadow-md
                      transition-all duration-150 ease-out
-                     disabled:opacity-40 disabled:cursor-not-allowed"
-                    (click)="closeModal()">
+                     disabled:opacity-40 disabled:cursor-not-allowed" (click)="closeModal()">
 
                     Cancelar
 
@@ -91,8 +83,7 @@
                      active:scale-[0.98]
                      disabled:opacity-50 disabled:cursor-not-allowed
                      disabled:shadow-none
-                     transition-all duration-150 ease-out"
-                    [disabled]="isSubmitting() || !isFormValid()"
+                     transition-all duration-150 ease-out" [disabled]="isSubmitting() || !isFormValid()"
                     (click)="submitCreate()">
 
                     @if (isSubmitting()) {
@@ -150,24 +141,25 @@
                 @switch (field.type) {
 
                 @case ('text') {
-                <input class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    [value]="formState[field.key]"
-                    (input)="setFieldValue(field.key, $any($event.target).value)" />
+                <input
+                    class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    [value]="formUpdateState[field.key]"
+                    (input)="setFieldValue(field.key, $any($event.target).value, 'update')" />
                 }
 
                 @case ('number') {
                 <input type="number"
                     class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    [value]="formState[field.key]"
-                    (input)="onNumberChange(field.key, $event)" />
+                    [value]="formUpdateState[field.key]" (input)="onNumberChange(field.key, $event, 'update')" />
                 }
 
                 @case ('select') {
-                <select class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    [value]="formState[field.key]"
-                    (change)="setFieldValue(field.key, $any($event.target).value)">
+                <select
+                    class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    [value]="formUpdateState[field.key]"
+                    (change)="setFieldValue(field.key, $any($event.target).value, 'update')">
                     @for (opt of field.options; track opt.value) {
-                    <option [value]="opt.value" [selected]="formState[field.key] === opt.value">
+                    <option [value]="opt.value" [selected]="formUpdateState[field.key] === opt.value">
                         {{ opt.label }}
                     </option>
                     }
@@ -176,7 +168,7 @@
 
                 @case ('guid') {
                 <input class="w-full rounded-lg border border-gray-300 px-3 py-2 bg-gray-100 text-gray-600"
-                    [value]="formState[field.key]" disabled />
+                    [value]="formUpdateState[field.key]" disabled />
                 }
 
                 }
@@ -196,8 +188,7 @@
                  active:scale-[0.98]
                  shadow-sm hover:shadow-md
                  transition-all duration-150 ease-out disabled:opacity-40 disabled:cursor-not-allowed"
-                [disabled]="!hasChanges()"
-                (click)="closeUpdateModal('Restablecer')">
+                [disabled]="!hasChanges()" (click)="closeUpdateModal('reset')">
                 Restablecer
             </button>
 
@@ -209,8 +200,7 @@
                  active:scale-[0.98]
                  disabled:opacity-50 disabled:cursor-not-allowed
                  disabled:shadow-none
-                 transition-all duration-150 ease-out"
-                [disabled]="isUpdating() || !isFormValid()"
+                 transition-all duration-150 ease-out" [disabled]="isUpdating() || !isFormValid()"
                 (click)="submitUpdate()">
 
                 @if (isUpdating()) {
@@ -251,16 +241,14 @@
             <button class="cursor-pointer px-4 py-2 rounded-lg bg-gray-100 text-gray-700
                hover:bg-gray-200 hover:text-gray-900
                active:scale-95
-               transition-all duration-150 ease-out"
-                (click)="isDiscardWarningOpen.set(false)">
+               transition-all duration-150 ease-out" (click)="isDiscardWarningOpen.set(false)">
                 Volver
             </button>
 
             <button class="cursor-pointer px-4 py-2 rounded-lg bg-red-600 text-white
                hover:bg-red-700 hover:shadow-lg hover:shadow-red-500/20
                active:scale-95
-               transition-all duration-150 ease-out"
-                (click)="discardChanges()">
+               transition-all duration-150 ease-out" (click)="discardChanges()">
                 Dejar de Editar
             </button>
 
@@ -284,10 +272,8 @@
     <!-- MODAL -->
     <div class="relative z-10 bg-white p-6 rounded-2xl w-[380px]
                shadow-2xl border border-gray-200
-               transition-all duration-200 ease-out"
-        [class.opacity-0]="isDeleteClosing()"
-        [class.scale-95]="isDeleteClosing()"
-        [class.translate-y-2]="isDeleteClosing()"
+               transition-all duration-200 ease-out" [class.opacity-0]="isDeleteClosing()"
+        [class.scale-95]="isDeleteClosing()" [class.translate-y-2]="isDeleteClosing()"
         (click)="$event.stopPropagation()">
 
         <h2 class="text-lg font-semibold mb-2">
@@ -306,9 +292,9 @@
                 Cancelar
             </button>
 
-            <button class="cursor-pointer px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
-                [disabled]="isDeleting()"
-                (click)="confirmDelete()">
+            <button
+                class="cursor-pointer px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
+                [disabled]="isDeleting()" (click)="confirmDelete()">
 
                 @if (isDeleting()) {
                 Eliminando...
@@ -317,6 +303,123 @@
                 }
 
             </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+}
+
+@if (isFilterOpen()) {
+
+<div class="fixed inset-0 z-[9999] flex items-center justify-center">
+
+    <!-- BACKDROP -->
+    <div class="absolute inset-0 backdrop-blur-md bg-black/30" (click)="closeFilter()">
+    </div>
+
+    <!-- MODAL -->
+    <div class="relative z-10 bg-white rounded-2xl w-[480px] shadow-2xl
+                border border-gray-200 overflow-hidden" (click)="$event.stopPropagation()">
+
+        <!-- HEADER -->
+        <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <iconify-icon icon="lucide:filter" class="text-gray-500"></iconify-icon>
+                <h2 class="text-base font-semibold text-gray-800">Filtros avanzados</h2>
+            </div>
+            <button mat-icon-button (click)="closeFilter()">
+                <mat-icon class="text-gray-400 hover:text-gray-600">close</mat-icon>
+            </button>
+        </div>
+
+        <!-- BODY -->
+        <div class="p-5 space-y-5">
+
+            <!-- TIPO EVENTO -->
+            <div class="flex flex-col gap-2">
+                <label class="text-sm font-medium text-gray-700">Tipo de evento</label>
+                <div class="flex flex-wrap gap-2">
+                    @for (tipo of tipoEventoOptions; track tipo) {
+                    <button
+                        class="cursor-pointer px-3 py-1.5 rounded-full text-xs font-medium border transition-all duration-150"
+                        [ngClass]="filterState.tipoEvento.includes(tipo)
+                            ? getEventoClass(tipo) + ' border-transparent'
+                            : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-gray-400'"
+                        (click)="toggleTipoEvento(tipo)">
+                        {{ tipo }}
+                    </button>
+                    }
+                </div>
+            </div>
+
+            <!-- MONTO -->
+            <div class="flex flex-col gap-2">
+                <label class="text-sm font-medium text-gray-700">Rango de monto</label>
+                <div class="flex gap-3">
+                    <input type="number" placeholder="Mínimo" class="w-full rounded-lg border border-gray-300 px-3 py-2
+                               text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        [value]="filterState.montoMin ?? ''"
+                        (input)="filterState.montoMin = +$any($event.target).value || null" />
+                    <input type="number" placeholder="Máximo" class="w-full rounded-lg border border-gray-300 px-3 py-2
+                               text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        [value]="filterState.montoMax ?? ''"
+                        (input)="filterState.montoMax = +$any($event.target).value || null" />
+                </div>
+            </div>
+
+            <!-- FECHA -->
+            <div class="flex flex-col gap-2">
+                <label class="text-sm font-medium text-gray-700">Rango de fecha</label>
+                <div class="flex gap-3">
+                    <input type="date" class="w-full rounded-lg border border-gray-300 px-3 py-2
+                               text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        [value]="filterState.fechaDesde"
+                        (change)="filterState.fechaDesde = $any($event.target).value" />
+                    <input type="date" class="w-full rounded-lg border border-gray-300 px-3 py-2
+                               text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        [value]="filterState.fechaHasta"
+                        (change)="filterState.fechaHasta = $any($event.target).value" />
+                </div>
+            </div>
+
+            <!-- ID USUARIO -->
+            <div class="flex flex-col gap-2">
+                <label class="text-sm font-medium text-gray-700">ID Usuario</label>
+                <input type="text" placeholder="Buscar por ID de usuario..." class="w-full rounded-lg border border-gray-300 px-3 py-2
+                           text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" [value]="filterState.idUsuario"
+                    (input)="filterState.idUsuario = $any($event.target).value" />
+            </div>
+
+        </div>
+
+        <!-- FOOTER -->
+        <div class="px-5 py-4 border-t border-gray-100 flex justify-between items-center">
+
+            @if (activeFilterCount() > 0) {
+            <span class="text-xs text-blue-600 font-medium">
+                {{ activeFilterCount() }} filtro(s) activo(s)
+            </span>
+            } @else {
+            <span class="text-xs text-gray-400">Sin filtros aplicados</span>
+            }
+
+            <div class="flex gap-3">
+                <button class="px-4 py-2 rounded-xl border border-gray-300 bg-white
+                               text-sm text-gray-600 hover:bg-gray-50 transition-all duration-150"
+                    (click)="clearFilter()">
+                    Limpiar
+                </button>
+
+                <button class="px-5 py-2 rounded-xl bg-gradient-to-b from-blue-500 to-blue-600
+                               text-white text-sm font-semibold hover:from-blue-600 hover:to-blue-700
+                               hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-150"
+                    (click)="applyFilter()">
+                    Aplicar
+                </button>
+            </div>
 
         </div>
 
@@ -353,18 +456,66 @@
         <!-- RIGHT -->
         <div class="flex items-center gap-3">
 
-            <div class="flex items-center gap-2 px-3 h-10 rounded-xl border border-gray-200 bg-gray-50 text-gray-500">
+            <div class="flex items-center gap-2
+            px-3 h-10
+            rounded-xl
+            border border-gray-200
+            bg-gray-50
+            text-gray-500">
+
                 <iconify-icon icon="lucide:search"></iconify-icon>
-                <input type="text" placeholder="Buscar eventos de caja..."
-                    class="bg-transparent outline-none text-sm w-52" />
+
+                <input type="text" placeholder="Buscar movimiento..." class="bg-transparent outline-none text-sm w-52"
+                    (input)="applyGlobalFilter($event)" />
+
             </div>
 
             <button class="toolbar-btn" (click)="loadData()">
                 <iconify-icon icon="lucide:refresh-cw"></iconify-icon>
             </button>
 
-            <button class="toolbar-btn">
+            <button class="toolbar-btn relative" (click)="openFilter()">
                 <iconify-icon icon="lucide:filter"></iconify-icon>
+
+                @if (activeFilterCount() > 0) {
+                <span class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-blue-500
+                            text-white text-[10px] font-bold flex items-center justify-center">
+                    {{ activeFilterCount() }}
+                </span>
+                }
+            </button>
+
+            <button type="button" (click)="hideGuidColumns.set(!hideGuidColumns())" class="
+        cursor-pointer
+
+        inline-flex items-center gap-2
+
+        rounded-xl
+        border border-gray-200
+
+        bg-white
+
+        px-3.5 py-2
+
+        text-sm font-medium text-gray-700
+
+        transition-all duration-200
+
+        hover:border-gray-300
+        hover:bg-gray-50
+        hover:text-gray-900
+
+        active:scale-[0.98]
+
+        shadow-sm hover:shadow
+    ">
+                <mat-icon class="!w-[18px] !h-[18px] !text-[18px] text-gray-500">
+                    {{ hideGuidColumns() ? 'visibility_off' : 'visibility' }}
+                </mat-icon>
+
+                <span>
+                    {{ hideGuidColumns() ? 'Mostrar GUIDs' : 'Ocultar GUIDs' }}
+                </span>
             </button>
 
             <button class="create-btn" (click)="openCreate()">
@@ -382,7 +533,8 @@
     <div class="flex-1 flex flex-col items-center justify-center gap-5 bg-gradient-to-b from-white to-gray-50/80">
 
         <div class="relative">
-            <div class="w-16 h-16 rounded-2xl border border-blue-100 bg-white/80 backdrop-blur-sm shadow-sm flex items-center justify-center">
+            <div
+                class="w-16 h-16 rounded-2xl border border-blue-100 bg-white/80 backdrop-blur-sm shadow-sm flex items-center justify-center">
                 <div class="w-8 h-8 border-[2.5px] border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
             </div>
 
@@ -412,16 +564,21 @@
             <table mat-table [dataSource]="dataSource" class="premium-table w-full table-auto border-collapse">
 
                 @for (col of displayedColumns; track col) {
-
                 <ng-container [matColumnDef]="col">
 
                     <th mat-header-cell *matHeaderCellDef>
                         {{ columnLabels[col] }}
                     </th>
 
-                    <td mat-cell *matCellDef="let e">
+                    <td mat-cell *matCellDef="let e; let i = index">
 
-                        @if (col === 'actions') {
+                        @if (col === 'rowIndex') {
+
+                        <span class="text-xs font-medium text-gray-400">
+                            {{ i + 1 }}
+                        </span>
+                        }
+                        @else if (col === 'actions') {
 
                         <button mat-icon-button [matMenuTriggerFor]="actionsMenu" class="action-button">
                             <mat-icon>more_vert</mat-icon>
@@ -460,8 +617,7 @@
 
                         @case ('currency') {
 
-                        <span class="currency-cell font-semibold"
-                            [ngClass]="getEventoTextClass(e['tipoEvento'])">
+                        <span class="currency-cell font-semibold" [ngClass]="getEventoTextClass(e['tipoEvento'])">
                             {{ getEventoMontoPrefix(e['tipoEvento']) }} $ {{ e[col] | number:'1.2-2' }}
                         </span>
 
@@ -493,8 +649,8 @@
 
                 }
 
-                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-                <tr mat-row *matRowDef="let row; columns: displayedColumns" class="table-row"></tr>
+                <tr mat-header-row *matHeaderRowDef="visibleColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: visibleColumns" class="table-row"></tr>
 
             </table>
 
@@ -511,7 +667,8 @@
 
         <div class="flex flex-col items-center gap-4 text-center max-w-sm">
 
-            <div class="w-16 h-16 rounded-2xl border border-gray-200 bg-gray-50 flex items-center justify-center text-gray-400">
+            <div
+                class="w-16 h-16 rounded-2xl border border-gray-200 bg-gray-50 flex items-center justify-center text-gray-400">
                 <iconify-icon icon="lucide:database-search" width="30"></iconify-icon>
             </div>
 

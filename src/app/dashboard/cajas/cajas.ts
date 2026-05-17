@@ -9,6 +9,17 @@ import { MatButtonModule } from '@angular/material/button';
 import { CajasResponse, CajasService, CreateCaja } from '../../services/cajas.service';
 import { DynamicCreateModel } from '../../helpers/fieldConfig';
 
+type UpdateModalAction = 'close' | 'reset';
+
+interface CajaFilter {
+    tipoEvento: string[];
+    montoMin: number | null;
+    montoMax: number | null;
+    fechaDesde: string;
+    fechaHasta: string;
+    idUsuario: string;
+}
+
 @Component({
     selector: 'app-cajas',
     standalone: true,
@@ -26,7 +37,7 @@ import { DynamicCreateModel } from '../../helpers/fieldConfig';
 export class Cajas {
 
     // =========================================================
-    // STATE (UI FLAGS)
+    // STATE
     // =========================================================
     isLoaded = signal(false);
 
@@ -48,8 +59,10 @@ export class Cajas {
     isCreateOpen = signal(false);
     isSubmitting = signal(false);
 
+    hideGuidColumns = signal(true);
+
     // =========================================================
-    // DATA MODELS
+    // DATA
     // =========================================================
     deleteTarget: CajasResponse | null = null;
     updateTarget: CajasResponse | null = null;
@@ -57,15 +70,163 @@ export class Cajas {
     updateModel: DynamicCreateModel | null = null;
     createModel: DynamicCreateModel | null = null;
 
-    formState: Record<string, any> = {};
+    formCreateState: Record<string, any> = {};
+    formUpdateState: Record<string, any> = {};
     originalFormState: Record<string, any> = {};
 
     dataSource = new MatTableDataSource<CajasResponse>();
 
     // =========================================================
+    // FILTER STATE
+    // =========================================================
+    isFilterOpen = signal(false);
+
+    activeFilterCount = signal(0);
+
+    filterState: CajaFilter = {
+        tipoEvento: [],
+        montoMin: null,
+        montoMax: null,
+        fechaDesde: '',
+        fechaHasta: '',
+        idUsuario: ''
+    };
+
+    tipoEventoOptions = ['APERTURA', 'CIERRE', 'RETIRO', 'INGRESO', 'CORTE'];
+
+    openFilter() {
+        this.isFilterOpen.set(true);
+    }
+
+    closeFilter() {
+        this.isFilterOpen.set(false);
+    }
+
+    toggleTipoEvento(tipo: string) {
+        const idx = this.filterState.tipoEvento.indexOf(tipo);
+
+        if (idx === -1) {
+            this.filterState.tipoEvento = [...this.filterState.tipoEvento, tipo];
+        } else {
+            this.filterState.tipoEvento = this.filterState.tipoEvento.filter(t => t !== tipo);
+        }
+    }
+
+    applyFilter() {
+        const f = this.filterState;
+
+        this.dataSource.filterPredicate = (row: CajasResponse) => {
+
+            if (f.tipoEvento.length > 0 && !f.tipoEvento.includes(row.tipoEvento)) {
+                return false;
+            }
+
+            if (f.montoMin !== null && row.monto < f.montoMin) return false;
+            if (f.montoMax !== null && row.monto > f.montoMax) return false;
+
+            if (f.fechaDesde) {
+                const desde = new Date(f.fechaDesde);
+                const fecha = new Date(row.fechaEvento);
+                if (fecha < desde) return false;
+            }
+
+            if (f.fechaHasta) {
+                const hasta = new Date(f.fechaHasta);
+                hasta.setHours(23, 59, 59);
+                const fecha = new Date(row.fechaEvento);
+                if (fecha > hasta) return false;
+            }
+
+            if (f.idUsuario && !row.idUsuario.toLowerCase().includes(f.idUsuario.toLowerCase())) {
+                return false;
+            }
+
+            return true;
+        };
+
+        // Cualquier string no vacío activa el filterPredicate
+        this.dataSource.filter = 'active';
+
+        // Contar filtros activos para el badge
+        let count = 0;
+        if (f.tipoEvento.length > 0) count++;
+        if (f.montoMin !== null || f.montoMax !== null) count++;
+        if (f.fechaDesde || f.fechaHasta) count++;
+        if (f.idUsuario) count++;
+
+        this.activeFilterCount.set(count);
+        this.closeFilter();
+    }
+
+    clearFilter() {
+        this.filterState = {
+            tipoEvento: [],
+            montoMin: null,
+            montoMax: null,
+            fechaDesde: '',
+            fechaHasta: '',
+            idUsuario: ''
+        };
+
+        this.dataSource.filter = '';
+        this.activeFilterCount.set(0);
+        this.closeFilter();
+    }
+
+    applyGlobalFilter(event: Event) {
+
+        const value =
+            (event.target as HTMLInputElement)
+                .value
+                .trim()
+                .toLowerCase();
+
+        this.dataSource.filter = value;
+    }
+
+    private globalFilterPredicate() {
+
+        return (
+            row: CajasResponse,
+            filter: string
+        ) => {
+
+            const searchableText = `
+            ${row.idCaja}
+            ${row.idEvento}
+            ${row.idUsuario}
+            ${row.tipoEvento}
+            ${row.descripcion}
+            ${row.monto}
+        `
+                .toLowerCase();
+
+            return searchableText.includes(filter);
+        };
+    }
+
+    get visibleColumns(): string[] {
+
+        if (!this.hideGuidColumns()) {
+            return this.displayedColumns;
+        }
+
+        return this.displayedColumns.filter(
+            col => !this.guidColumns.includes(col)
+        );
+    }
+
+    // =========================================================
     // TABLE CONFIG
     // =========================================================
+    guidColumns = [
+        'idCaja',
+        'idEvento',
+        'idUsuario'
+    ];
+
     displayedColumns: string[] = [
+        'rowIndex',
         'idCaja',
         'fechaEvento',
         'idEvento',
@@ -77,6 +238,7 @@ export class Cajas {
     ];
 
     columnLabels: Record<string, string> = {
+        rowIndex: 'No.',
         idCaja: 'ID CAJA',
         fechaEvento: 'FECHA EVENTO',
         idEvento: 'ID EVENTO',
@@ -104,6 +266,9 @@ export class Cajas {
     constructor(
         private readonly cajasService: CajasService
     ) {
+        this.dataSource.filterPredicate =
+            this.globalFilterPredicate();
+
         this.loadData();
     }
 
@@ -127,6 +292,10 @@ export class Cajas {
                 this.isLoaded.set(false);
             }
         });
+    }
+
+    getRowIndex(row: CajasResponse): number {
+        return this.dataSource.data.indexOf(row) + 1;
     }
 
     // =========================================================
@@ -154,12 +323,12 @@ export class Cajas {
                     ]
                 },
                 { key: 'monto', label: 'Monto', type: 'number', required: true },
-                { key: 'descripcion', label: 'Descripción', type: 'text' }
+                { key: 'descripcion', label: 'Descripción', type: 'text', required: false }
             ]
         };
 
         // init defaults
-        this.formState = this.createModel.fields.reduce((acc, field) => {
+        this.formCreateState = this.createModel.fields.reduce((acc, field) => {
 
             switch (field.type) {
 
@@ -194,7 +363,7 @@ export class Cajas {
         }, {} as Record<string, any>);
 
         this.isCreateOpen.set(true);
-        this.updateFormValidity();
+        this.updateFormValidity('create');
     }
 
     submitCreate() {
@@ -202,11 +371,11 @@ export class Cajas {
         this.isSubmitting.set(true);
 
         const payload: CreateCaja = {
-            idCaja: this.formState['idCaja'],
-            idUsuario: this.formState['idUsuario'],
-            tipoEvento: this.formState['tipoEvento'],
-            monto: Number(this.formState['monto']),
-            descripcion: this.formState['descripcion'] ?? null
+            idCaja: this.formCreateState['idCaja'],
+            idUsuario: this.formCreateState['idUsuario'],
+            tipoEvento: this.formCreateState['tipoEvento'],
+            monto: Number(this.formCreateState['monto']),
+            descripcion: this.formCreateState['descripcion'] ?? null
         };
 
         this.cajasService.createCaja(payload).subscribe({
@@ -217,7 +386,7 @@ export class Cajas {
                 setTimeout(() => {
                     this.isCreateOpen.set(false);
                     this.isClosing.set(false);
-                    this.formState = {};
+                    this.formCreateState = {};
                     this.loadData();
                 }, 200);
             },
@@ -228,7 +397,7 @@ export class Cajas {
     }
 
     // =========================================================
-    // UPDATE FLOW
+    // UPDATE
     // =========================================================
     updateCaja(row: CajasResponse) {
 
@@ -258,7 +427,7 @@ export class Cajas {
             ]
         };
 
-        this.formState = {
+        this.formUpdateState = {
             idCaja: row.idCaja,
             idEvento: row.idEvento,
             idUsuario: row.idUsuario,
@@ -267,9 +436,9 @@ export class Cajas {
             descripcion: row.descripcion ?? ''
         };
 
-        this.originalFormState = structuredClone(this.formState);
+        this.originalFormState = structuredClone(this.formUpdateState);
         this.isUpdateOpen.set(true);
-        this.updateFormValidity();
+        this.updateFormValidity('update');
     }
 
     submitUpdate() {
@@ -279,9 +448,9 @@ export class Cajas {
         this.isUpdating.set(true);
 
         const payload = {
-            tipoEvento: this.formState['tipoEvento'],
-            monto: Number(this.formState['monto']),
-            descripcion: this.formState['descripcion']
+            tipoEvento: this.formUpdateState['tipoEvento'],
+            monto: Number(this.formUpdateState['monto']),
+            descripcion: this.formUpdateState['descripcion']
         };
 
         this.cajasService.updateCaja(
@@ -310,7 +479,7 @@ export class Cajas {
     }
 
     // =========================================================
-    // DELETE FLOW
+    // DELETE
     // =========================================================
     deleteCaja(row: CajasResponse) {
         this.deleteTarget = row;
@@ -360,27 +529,32 @@ export class Cajas {
     // =========================================================
     // FORM CONTROL
     // =========================================================
-    setFieldValue(key: string, value: any) {
-        this.formState[key] = value;
+    setFieldValue(key: string, value: any, action: 'create' | 'update') {
+        if (action === 'create') {
+            this.formCreateState[key] = value;
+        } else {
+            this.formUpdateState[key] = value;
+        }
         this.isDirty.set(true);
         this.updateDirtyState();
-        this.updateFormValidity();
+        this.updateFormValidity(action);
     }
 
-    onNumberChange(key: string, event: Event) {
+    onNumberChange(key: string, event: Event, action: 'create' | 'update') {
 
         const value = (event.target as HTMLInputElement).value;
+        const state = action === 'create' ? this.formCreateState : this.formUpdateState;
 
         if (value === '') {
-            this.formState[key] = '';
-            this.updateFormValidity();
+            state[key] = '';
+            this.updateFormValidity(action);
             return;
         }
 
         const parsed = Number(value);
-        this.formState[key] = isNaN(parsed) ? 0 : parsed;
+        state[key] = isNaN(parsed) ? 0 : parsed;
 
-        this.updateFormValidity();
+        this.updateFormValidity(action);
     }
 
     closeModal() {
@@ -397,11 +571,10 @@ export class Cajas {
     // =========================================================
     // VALIDATION
     // =========================================================
-    private updateFormValidity() {
+    private updateFormValidity(action: 'create' | 'update') {
 
-        const model = this.isUpdateOpen()
-            ? this.updateModel
-            : this.createModel;
+        const model = action === 'create' ? this.createModel : this.updateModel;
+        const state = action === 'create' ? this.formCreateState : this.formUpdateState;
 
         if (!model) {
             this.isFormValid.set(false);
@@ -410,7 +583,7 @@ export class Cajas {
 
         for (const field of model.fields) {
 
-            const value = this.formState[field.key];
+            const value = state[field.key];
 
             const isEmpty =
                 value === null ||
@@ -426,7 +599,7 @@ export class Cajas {
                 continue;
             }
 
-            if (field.type === 'guid') {
+            if (field.type === 'guid' || field.type === 'guid-text') {
                 if (!this.isValidGuid(value)) {
                     this.isFormValid.set(false);
                     return;
@@ -458,7 +631,7 @@ export class Cajas {
     // UPDATE CONTROL HELPERS
     // =========================================================
     hasChanges(): boolean {
-        return JSON.stringify(this.formState) !== JSON.stringify(this.originalFormState);
+        return JSON.stringify(this.formUpdateState) !== JSON.stringify(this.originalFormState);
     }
 
     discardChanges() {
@@ -466,10 +639,10 @@ export class Cajas {
         this.forceCloseUpdate();
     }
 
-    closeUpdateModal(btn?: string) {
+    closeUpdateModal(action: UpdateModalAction = 'close') {
 
-        if (btn === 'Restablecer') {
-            this.formState = structuredClone(this.originalFormState);
+        if (action === 'reset') {
+            this.formUpdateState = structuredClone(this.originalFormState);
             return;
         }
 
@@ -491,7 +664,7 @@ export class Cajas {
     // =========================================================
     private updateDirtyState() {
         this.isDirty.set(
-            JSON.stringify(this.formState) !== JSON.stringify(this.originalFormState)
+            JSON.stringify(this.formUpdateState) !== JSON.stringify(this.originalFormState)
         );
     }
 
