@@ -8,6 +8,7 @@ import { MatButtonModule } from '@angular/material/button';
 
 import { CajasResponse, CajasService, CreateCaja } from '../../services/cajas.service';
 import { DynamicCreateModel } from '../../helpers/fieldConfig';
+import { FilterEngine } from '../../helpers/FilterEngine';
 
 type UpdateModalAction = 'close' | 'reset';
 
@@ -19,6 +20,8 @@ interface CajaFilter {
     fechaHasta: string;
     idUsuario: string;
 }
+
+
 
 @Component({
     selector: 'app-cajas',

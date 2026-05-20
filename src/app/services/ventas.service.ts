@@ -37,6 +37,41 @@ export interface UpdateVenta {
   actualizadoPor: string;
 }
 
+export interface VentaFilter {
+    estado: string[];
+    metodoPago: string[];
+    total: { min: number | null; max: number | null };
+    fechaVenta: { from: string; to: string; }
+    idSucursal: string;
+    idVenta: string;
+    idCliente: string;
+}
+
+export enum EstadoVenta {
+  PENDIENTE = "PENDIENTE",
+  PAGADA = "PAGADA",
+  PROCESANDO = "PROCESANDO",
+  COMPLETADA = "COMPLETADA",
+  CANCELADA = "CANCELADA",
+  ANULADA = "ANULADA",
+  REEMBOLSADA = "REEMBOLSADA",
+  DEVUELTA = "DEVUELTA"
+}
+
+export enum MetodoDePago {
+  EFECTIVO = "EFECTIVO",
+  TARJETA_CREDITO = "TARJETA_CREDITO",
+  TARJETA_DEBITO = "TARJETA_DEBITO",
+  TRANSFERENCIA_BANCARIA = "TRANSFERENCIA_BANCARIA",
+  CHEQUE = "CHEQUE",
+  OTRO = "OTRO"
+}
+
+export interface VentaEnums {
+  estadoVenta: EstadoVenta;
+  metodoPago: MetodoDePago;
+}
+
 
 @Injectable({ providedIn: 'root' })
 export class VentasService {

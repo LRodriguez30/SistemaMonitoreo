@@ -338,86 +338,85 @@
     <!-- BODY -->
     <div class="p-5 space-y-5 max-h-[65vh] overflow-y-auto">
 
-      <!-- ESTADO -->
+      @for (rule of filterRules; track rule.field) {
+
       <div class="flex flex-col gap-2">
-        <label class="text-sm font-medium text-gray-700">Estado de venta</label>
+        <label class="text-sm font-medium text-gray-700">
+          {{ rule.filter.label }}
+        </label>
+
+        <!-- MULTI_SELECT -->
+        @if (rule.filter.filterType === 'multi-select') {
         <div class="flex flex-wrap gap-2">
-          @for (op of estadoOptions; track op) {
+          @for (opt of rule.filter.options; track opt.value) {
+
+          @if (rule.field === 'estado') {
           <button class="cursor-pointer px-3 py-1.5 rounded-full text-xs font-medium border transition-all duration-150"
-            [ngClass]="filterState.estado.includes(op)
-                            ? getEstadoClass(op) + ' border-transparent'
-                            : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-gray-400'"
-            (click)="toggleEstado(op)">
+            [ngClass]="filterState.estado.includes($any(opt.value))
+                  ? getEstadoClass($any(opt.value)) + ' border-transparent'
+                  : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-gray-400'"
+            (click)="toggleMulti(rule.field, $any(opt.value))">
             <mat-icon class="!text-[12px] !w-3 !h-3 mr-1 align-middle">
-              {{ getEstadoIcon(op) }}
+              {{ getEstadoIcon($any(opt.value)) }}
             </mat-icon>
-            {{ op }}
+            {{ opt.label }}
           </button>
           }
-        </div>
-      </div>
 
-      <!-- MÉTODO DE PAGO -->
-      <div class="flex flex-col gap-2">
-        <label class="text-sm font-medium text-gray-700">Método de pago</label>
-        <div class="flex flex-wrap gap-2">
-          @for (op of metodoPagoOptions; track op) {
+          @if (rule.field === 'metodoPago') {
           <button class="cursor-pointer px-3 py-1.5 rounded-full text-xs font-medium border transition-all duration-150"
-            [ngClass]="filterState.metodoPago.includes(op)
-                            ? getMetodoPagoClass(op) + ' border-transparent'
-                            : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-gray-400'"
-            (click)="toggleMetodoPago(op)">
+            [ngClass]="filterState.metodoPago.includes($any(opt.value))
+                  ? getMetodoPagoClass($any(opt.value)) + ' border-transparent'
+                  : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-gray-400'"
+            (click)="toggleMulti(rule.field, $any(opt.value))">
             <mat-icon class="!text-[12px] !w-3 !h-3 mr-1 align-middle">
-              {{ getMetodoPagoIcon(op) }}
+              {{ getMetodoPagoIcon($any(opt.value)) }}
             </mat-icon>
-            {{ getMetodoPagoLabel(op) }}
+            {{ opt.label }}
           </button>
           }
-        </div>
-      </div>
 
-      <!-- TOTAL -->
-      <div class="flex flex-col gap-2">
-        <label class="text-sm font-medium text-gray-700">Rango de total</label>
+          }
+        </div>
+        }
+
+        <!-- NUMBER_RANGE -->
+        @if (rule.filter.filterType === 'number-range') {
         <div class="flex gap-3">
-          <input type="number" placeholder="Mínimo" class="w-full rounded-lg border border-gray-300 px-3 py-2
-                               text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            [value]="filterState.totalMin ?? ''" (input)="filterState.totalMin = +$any($event.target).value || null" />
-          <input type="number" placeholder="Máximo" class="w-full rounded-lg border border-gray-300 px-3 py-2
-                               text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            [value]="filterState.totalMax ?? ''" (input)="filterState.totalMax = +$any($event.target).value || null" />
+          <input type="number" placeholder="Mínimo"
+            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            [value]="asRange(getFilterValue(rule.field)).min ?? ''"
+            (input)="setRangeValue(rule.field, 'min', $any($event.target).value)" />
+          <input type="number" placeholder="Máximo"
+            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            [value]="asRange(getFilterValue(rule.field)).max ?? ''"
+            (input)="setRangeValue(rule.field, 'max', $any($event.target).value)" />
         </div>
-      </div>
+        }
 
-      <!-- FECHA -->
-      <div class="flex flex-col gap-2">
-        <label class="text-sm font-medium text-gray-700">Rango de fecha</label>
+        <!-- DATE_RANGE -->
+        @if (rule.filter.filterType === 'date-range') {
         <div class="flex gap-3">
-          <input type="date" class="w-full rounded-lg border border-gray-300 px-3 py-2
-                               text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            [value]="filterState.fechaDesde" (change)="filterState.fechaDesde = $any($event.target).value" />
-          <input type="date" class="w-full rounded-lg border border-gray-300 px-3 py-2
-                               text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            [value]="filterState.fechaHasta" (change)="filterState.fechaHasta = $any($event.target).value" />
+          <input type="date"
+            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            [value]="asDateRange(getFilterValue(rule.field)).from"
+            (change)="setRangeValue(rule.field, 'from', $any($event.target).value)" />
+          <input type="date"
+            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            [value]="asDateRange(getFilterValue(rule.field)).to"
+            (change)="setRangeValue(rule.field, 'to', $any($event.target).value)" />
         </div>
-      </div>
+        }
 
-      <!-- ID SUCURSAL -->
-      <div class="flex flex-col gap-2">
-        <label class="text-sm font-medium text-gray-700">ID Sucursal</label>
-        <input type="text" placeholder="Buscar por ID de sucursal..." class="w-full rounded-lg border border-gray-300 px-3 py-2
-                           text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          [value]="filterState.idSucursal" (input)="filterState.idSucursal = $any($event.target).value" />
-      </div>
+        <!-- EQUALS (text / guid) -->
+        @if (rule.filter.filterType === 'equals') {
+        <input type="text" [placeholder]="'Buscar por ' + rule.filter.label + '...'"
+          class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          [value]="getFilterValue(rule.field)" (input)="setFilterValue(rule.field, $any($event.target).value)" />
+        }
 
-      <!-- ID CLIENTE -->
-      <div class="flex flex-col gap-2">
-        <label class="text-sm font-medium text-gray-700">ID Cliente</label>
-        <input type="text" placeholder="Buscar por ID de cliente..." class="w-full rounded-lg border border-gray-300 px-3 py-2
-                           text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" [value]="filterState.idCliente"
-          (input)="filterState.idCliente = $any($event.target).value" />
       </div>
-
+      }
     </div>
 
     <!-- FOOTER -->
@@ -558,7 +557,7 @@
   </div>
 
   <!-- LOADING -->
-  @if (!isLoaded()) {
+  @if (!isLoaded() && !isApiError()) {
 
   <div class="flex-1 flex flex-col items-center justify-center gap-5 bg-gradient-to-b from-white to-gray-50/80">
 
@@ -591,6 +590,51 @@
       <span class="text-[11px] tracking-[0.18em] uppercase text-gray-400">
         sincronizando registros
       </span>
+
+    </div>
+
+  </div>
+
+  }
+
+  @if (isApiError()) {
+
+  <div class="flex-1 flex items-center justify-center p-6">
+
+    <div class="flex flex-col items-center gap-4 text-center max-w-sm">
+
+      <!-- ICON -->
+      <div class="w-16 h-16 rounded-2xl
+                  border border-red-200
+                  bg-red-50
+                  flex items-center justify-center
+                  text-red-400">
+
+        <iconify-icon icon="lucide:cloud-off" width="30"></iconify-icon>
+
+      </div>
+
+      <!-- TEXT -->
+      <div class="flex flex-col gap-1">
+
+        <span class="text-sm font-semibold text-gray-700">
+          No se pueden obtener registros
+        </span>
+
+        <span class="text-[12px] text-gray-400 leading-relaxed">
+          Ocurrió un problema al conectar con el servidor. Intenta nuevamente.
+        </span>
+
+      </div>
+
+      <!-- ACTION -->
+      <button class="refresh-empty-btn cursor-pointer" (click)="loadData()">
+
+        <iconify-icon icon="lucide:refresh-cw"></iconify-icon>
+
+        <span>Reintentar</span>
+
+      </button>
 
     </div>
 

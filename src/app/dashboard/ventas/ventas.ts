@@ -1,26 +1,20 @@
 import { Component, CUSTOM_ELEMENTS_SCHEMA, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
-import { CreateVenta, UpdateVenta, VentasResponse, VentasService } from '../../services/ventas.service';
+import { CreateVenta, EstadoVenta, MetodoDePago, UpdateVenta, VentaEnums, VentaFilter, VentasResponse, VentasService } from '../../services/ventas.service';
 
 import { MatTableDataSource } from '@angular/material/table';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { DynamicCreateModel } from '../../helpers/fieldConfig';
+import { DataType, FilterEngine, FilterField, FilterType } from '../../helpers/FilterEngine';
+import { TableSchema } from '../../helpers/TableSchema';
+import { humanizeEnum } from '../../helpers/EnumFormatter';
 
 type UpdateModalAction = 'close' | 'reset';
-
-interface VentaFilter {
-    estado: string[];
-    metodoPago: string[];
-    totalMin: number | null;
-    totalMax: number | null;
-    fechaDesde: string;
-    fechaHasta: string;
-    idSucursal: string;
-    idCliente: string;
-}
+type VentaFilterKey = keyof VentaFilter;
+type MultiFields = 'estado' | 'metodoPago';
 
 @Component({
     selector: 'app-ventas',
@@ -37,10 +31,137 @@ interface VentaFilter {
     styleUrl: './ventas.css'
 })
 export class Ventas {
+    private InitializeTableSchema(): TableSchema<VentasResponse> {
+        return {
+            fields: [
+                { key: 'rowIndex', label: '#', type: 'counter', source: 'computed' },
+
+                { key: 'idSucursal', label: 'ID SUCURSAL', type: 'guid' },
+                { key: 'fechaVenta', label: 'FECHA', type: 'date' },
+                { key: 'idVenta', label: 'ID VENTA', type: 'guid' },
+                { key: 'idCliente', label: 'ID CLIENTE', type: 'guid' },
+
+                { key: 'metodoPago', label: 'MÉTODO DE PAGO', type: 'badge' },
+                { key: 'total', label: 'TOTAL', type: 'currency' },
+                { key: 'cantidadProductos', label: 'CANTIDAD VENDIDA', type: 'number' },
+
+                { key: 'estado', label: 'ESTADO DE VENTA', type: 'status' },
+
+                { key: 'creadoEn', label: 'CREADO EN', type: 'datetime' },
+                { key: 'actualizadoEn', label: 'ACTUALIZADO EN', type: 'datetime' },
+
+                { key: 'creadoPor', label: 'CREADO POR', type: 'guid' },
+                { key: 'actualizadoPor', label: 'ACTUALIZADO POR', type: 'guid' },
+
+                { key: 'actions', label: '', type: 'actions', source: 'ui' }
+            ]
+        };
+    }
+
+    private InitializeFilterEngine() {
+
+        return new FilterEngine<VentaFilter>(
+            [
+                {
+                    field: 'estado',
+                    filter: {
+                        styleClass: "estado-badge",
+                        label: "Estado de Venta",
+                        filterType: FilterType.MULTI_SELECT,
+                        dataType: DataType.SELECT,
+                        options: Object.values(EstadoVenta).map(value => ({
+                            label: value.includes('_')
+                                ? humanizeEnum({
+                                    value,
+                                    connectors:
+                                        [{ index: 0, word: 'de' }]
+                                })
+                                : humanizeEnum({ value }),
+
+                            value
+                        }))
+                    }
+                },
+                {
+                    field: 'metodoPago',
+                    filter: {
+                        label: "Método de Pago",
+                        filterType: FilterType.MULTI_SELECT,
+                        dataType: DataType.SELECT,
+                        options: Object.values(MetodoDePago).map(value => ({
+                            label: value.includes('_')
+                                ? humanizeEnum({
+                                    value,
+                                    connectors:
+                                        [{ index: 0, word: 'de' }]
+                                })
+                                : humanizeEnum({ value }),
+
+                            value
+                        }))
+                    }
+                },
+
+                {
+                    field: 'total',
+                    filter: {
+                        label: "En Cantidad Monetaria alrededor de:",
+                        filterType: FilterType.NUMBER_RANGE,
+                        dataType: DataType.NUMBER
+                    }
+                },
+
+                {
+                    field: 'fechaVenta',
+                    filter: {
+                        label: "Entre las Fechas:",
+                        filterType: FilterType.DATE_RANGE,
+                        dataType: DataType.DATETIME
+                    }
+                },
+
+                {
+                    field: 'idSucursal',
+                    filter: {
+                        label: "ID Sucursal",
+                        filterType: FilterType.EQUALS,
+                        dataType: DataType.GUID
+                    }
+                },
+                {
+                    field: 'idVenta',
+                    filter: {
+                        label: "ID Venta",
+                        filterType: FilterType.EQUALS,
+                        dataType: DataType.GUID
+                    }
+                },
+                {
+                    field: 'idCliente',
+                    filter: {
+                        label: "ID Cliente",
+                        filterType: FilterType.EQUALS,
+                        dataType: DataType.GUID
+                    }
+                }
+            ],
+            {
+                estado: [],
+                metodoPago: [],
+                total: { min: null, max: null },
+                fechaVenta: { from: '', to: '' },
+                idSucursal: '',
+                idVenta: '',
+                idCliente: ''
+            }
+        );
+    }
+
     // =========================================================
     // STATE
     // =========================================================
     isLoaded = signal(false);
+    isApiError = signal(false);
 
     isClosing = signal(false);
     isDeleting = signal(false);
@@ -83,19 +204,52 @@ export class Ventas {
     isFilterOpen = signal(false);
     activeFilterCount = signal(0);
 
-    filterState: VentaFilter = {
-        estado: [],
-        metodoPago: [],
-        totalMin: null,
-        totalMax: null,
-        fechaDesde: '',
-        fechaHasta: '',
-        idSucursal: '',
-        idCliente: ''
-    };
+    filterEngine = this.InitializeFilterEngine();
 
-    estadoOptions = ['PENDIENTE', 'PROCESANDO', 'PAGADA', 'COMPLETADA', 'CANCELADA', 'ANULADA', 'REEMBOLSADA', 'DEVUELTA'];
-    metodoPagoOptions = ['EFECTIVO', 'TARJETA_CREDITO', 'TARJETA_DEBITO', 'TRANSFERENCIA_BANCARIA', 'CHEQUE', 'OTRO'];
+    filterState = this.filterEngine.createState();
+    readonly filterRules = this.filterEngine.rules;
+
+    toggleMulti(field: VentaFilterKey, valor: string) {
+        const current = this.filterState[field] as string[];
+        const idx = current.indexOf(valor);
+
+        (this.filterState[field] as string[]) = idx === -1
+            ? [...current, valor]
+            : current.filter(v => v !== valor);
+    }
+
+    setRangeValue(field: VentaFilterKey, key: 'min' | 'max' | 'from' | 'to', raw: string) {
+        const current = { ...(this.filterState[field] as any) };
+
+        if (key === 'min' || key === 'max') {
+            current[key] = raw === '' ? null : Number(raw);
+        } else {
+            current[key] = raw;
+        }
+
+        this.filterState[field] = current;
+    }
+
+    asRange(value: any): { min: number | null; max: number | null } {
+        return value as { min: number | null; max: number | null };
+    }
+
+    asDateRange(value: any): { from: string; to: string } {
+        return value as { from: string; to: string };
+    }
+
+    getFilterValue(
+        field: VentaFilterKey
+    ) {
+        return this.filterState[field];
+    }
+
+    setFilterValue(
+        field: VentaFilterKey,
+        value: any
+    ) {
+        this.filterState[field] = value;
+    }
 
     openFilter() {
         this.isFilterOpen.set(true);
@@ -105,45 +259,34 @@ export class Ventas {
         this.isFilterOpen.set(false);
     }
 
-    toggleEstado(valor: string) {
-        const idx = this.filterState.estado.indexOf(valor);
-        this.filterState.estado = idx === -1
-            ? [...this.filterState.estado, valor]
-            : this.filterState.estado.filter(e => e !== valor);
-    }
-
-    toggleMetodoPago(valor: string) {
-        const idx = this.filterState.metodoPago.indexOf(valor);
-        this.filterState.metodoPago = idx === -1
-            ? [...this.filterState.metodoPago, valor]
-            : this.filterState.metodoPago.filter(m => m !== valor);
-    }
-
     applyFilter() {
         const f = this.filterState;
 
         this.dataSource.filterPredicate = (row: VentasResponse) => {
 
+            const totalRaw = row.total;
+            const total = Number(totalRaw);
+
             if (f.estado.length > 0 && !f.estado.includes(row.estado)) return false;
 
             if (f.metodoPago.length > 0 && !f.metodoPago.includes(row.metodoPago)) return false;
 
-            if (f.totalMin !== null && row.total < f.totalMin) return false;
-            if (f.totalMax !== null && row.total > f.totalMax) return false;
+            if (f.total.min !== null && row.total < f.total.min) return false;
+            if (f.total.max !== null && row.total > f.total.max) return false;
 
-            if (f.fechaDesde) {
-                const desde = new Date(f.fechaDesde);
+            if (f.fechaVenta.from) {
+                const desde = new Date(f.fechaVenta.from);
                 if (new Date(row.fechaVenta) < desde) return false;
             }
 
-            if (f.fechaHasta) {
-                const hasta = new Date(f.fechaHasta);
+            if (f.fechaVenta.to) {
+                const hasta = new Date(f.fechaVenta.to);
                 hasta.setHours(23, 59, 59);
                 if (new Date(row.fechaVenta) > hasta) return false;
             }
 
             if (f.idSucursal && !row.idSucursal.toLowerCase().includes(f.idSucursal.toLowerCase())) return false;
-
+            if (f.idVenta && !row.idVenta.toLowerCase().includes(f.idVenta.toLowerCase())) return false;
             if (f.idCliente && !row.idCliente.toLowerCase().includes(f.idCliente.toLowerCase())) return false;
 
             return true;
@@ -154,8 +297,8 @@ export class Ventas {
         let count = 0;
         if (f.estado.length > 0) count++;
         if (f.metodoPago.length > 0) count++;
-        if (f.totalMin !== null || f.totalMax !== null) count++;
-        if (f.fechaDesde || f.fechaHasta) count++;
+        if (f.total.min !== null || f.total.max !== null) count++;
+        if (f.fechaVenta.from || f.fechaVenta.to) count++;
         if (f.idSucursal) count++;
         if (f.idCliente) count++;
 
@@ -167,17 +310,15 @@ export class Ventas {
         this.filterState = {
             estado: [],
             metodoPago: [],
-            totalMin: null,
-            totalMax: null,
-            fechaDesde: '',
-            fechaHasta: '',
+            total: { min: null, max: null },
+            fechaVenta: { from: '', to: '' },
             idSucursal: '',
+            idVenta: '',
             idCliente: ''
         };
 
         this.dataSource.filter = '';
         this.activeFilterCount.set(0);
-        this.closeFilter();
     }
 
     applyGlobalFilter(event: Event) {
@@ -198,20 +339,21 @@ export class Ventas {
             filter: string
         ) => {
 
-            const searchableText = `
-                ${row.idVenta}
-                ${row.idSucursal}
-                ${row.idCliente}
-                ${row.estado}
-                ${row.metodoPago}
-                ${row.creadoPor}
-                ${row.actualizadoPor}
-                ${row.total}
-            `
-                .toLowerCase();
-
-            return searchableText.includes(filter);
+            return this.buildSearchText(row).includes(filter);
         };
+    }
+
+    private buildSearchText(row: VentasResponse): string {
+        return [
+            row.idVenta,
+            row.idSucursal,
+            row.idCliente,
+            row.estado,
+            row.metodoPago,
+            row.creadoPor,
+            row.actualizadoPor,
+            row.total
+        ].join(' ').toLowerCase();
     }
 
     get visibleColumns(): string[] {
@@ -228,6 +370,29 @@ export class Ventas {
     // =========================================================
     // TABLE CONFIG
     // =========================================================
+    ventasSchema = this.InitializeTableSchema();
+
+    get displayedColumns(): string[] {
+        return this.ventasSchema.fields
+            .filter(f => f.type !== 'actions' || f.source === 'ui')
+            .map(f => f.key as string);
+    }
+
+    get columnLabels(): Record<string, string> {
+        return Object.fromEntries(
+            this.ventasSchema.fields.map(f => [f.key, f.label])
+        );
+    }
+
+    get columnConfig(): Record<string, { type: string }> {
+        return Object.fromEntries(
+            this.ventasSchema.fields.map(f => [
+                f.key,
+                { type: f.type }
+            ])
+        );
+    }
+
     guidColumns = [
         'idSucursal',
         'idProducto',
@@ -236,56 +401,6 @@ export class Ventas {
         'creadoPor',
         'actualizadoPor'
     ];
-
-    displayedColumns: string[] = [
-        'rowIndex',
-        'idSucursal',
-        'fechaVenta',
-        'idVenta',
-        'idCliente',
-        'metodoPago',
-        'total',
-        'cantidadProductos',
-        'estado',
-        'creadoEn',
-        'actualizadoEn',
-        'creadoPor',
-        'actualizadoPor',
-        'actions'
-    ];
-
-    columnLabels: Record<string, string> = {
-        rowIndex: 'No.',
-        idSucursal: 'ID SUCURSAL',
-        fechaVenta: 'FECHA',
-        idVenta: 'ID VENTA',
-        idCliente: 'ID CLIENTE',
-        metodoPago: 'MÉTODO DE PAGO',
-        total: 'TOTAL',
-        cantidadProductos: 'CANTIDAD VENDIDA',
-        estado: 'ESTADO DE VENTA',
-        creadoEn: 'CREADO EN',
-        actualizadoEn: 'ACTUALIZADO EN',
-        creadoPor: 'CREADO POR',
-        actualizadoPor: 'ACTUALIZADO POR',
-        actions: 'ACCIONES'
-    };
-
-    columnConfig: Record<string, { type: string }> = {
-        idSucursal: { type: 'text' },
-        fechaVenta: { type: 'date' },
-        idVenta: { type: 'id' },
-        idCliente: { type: 'text' },
-        metodoPago: { type: 'badge' },
-        total: { type: 'currency' },
-        cantidadProductos: { type: 'number' },
-        estado: { type: 'status' },
-        creadoEn: { type: 'datetime' },
-        actualizadoEn: { type: 'datetime' },
-        creadoPor: { type: 'user' },
-        actualizadoPor: { type: 'user' },
-        actions: { type: 'actions' }
-    };
 
     // =========================================================
     // CONSTRUCTOR / INIT
@@ -304,6 +419,7 @@ export class Ventas {
     loadData() {
 
         this.isLoaded.set(false);
+        this.isApiError.set(false);
 
         this.ventasService.getVentas().subscribe({
 
@@ -315,6 +431,7 @@ export class Ventas {
 
             error: (err) => {
                 console.error('Error cargando ventas', err);
+                this.isApiError.set(true);
                 this.isLoaded.set(false);
             }
         });
