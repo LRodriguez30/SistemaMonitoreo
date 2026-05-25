@@ -1,20 +1,27 @@
 import { Component, CUSTOM_ELEMENTS_SCHEMA, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
-import { CreateVenta, EstadoVenta, MetodoDePago, UpdateVenta, VentaEnums, VentaFilter, VentasResponse, VentasService } from '../../services/ventas.service';
+import { CreateVenta, UpdateVenta, VentaFilter, VentasResponse, VentasService } from '../../services/ventas.service';
 
 import { MatTableDataSource } from '@angular/material/table';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { DynamicCreateModel } from '../../helpers/fieldConfig';
-import { DataType, FilterEngine, FilterField, FilterType } from '../../helpers/FilterEngine';
-import { TableSchema } from '../../helpers/TableSchema';
-import { humanizeEnum } from '../../helpers/EnumFormatter';
+import { DynamicCreateModel } from '../../helpers/ActionsHelper';
+
+import { InitializeTableSchema, GUID_COLUMNS } from './ventas.schema';
+import { InitializeFilterEngine } from './ventas.filter';
+
+import {
+    getMetodoPagoClass, getMetodoPagoIcon, getMetodoPagoLabel,
+    getEstadoClass, getEstadoIcon,
+    getMontoMeta
+} from './ventas.ui';
+import { InitializeDefaultValues } from '../../helpers/FormInit';
+import { isValidGuid } from '../../helpers/Validators';
 
 type UpdateModalAction = 'close' | 'reset';
 type VentaFilterKey = keyof VentaFilter;
-type MultiFields = 'estado' | 'metodoPago';
 
 @Component({
     selector: 'app-ventas',
@@ -31,131 +38,17 @@ type MultiFields = 'estado' | 'metodoPago';
     styleUrl: './ventas.css'
 })
 export class Ventas {
-    private InitializeTableSchema(): TableSchema<VentasResponse> {
-        return {
-            fields: [
-                { key: 'rowIndex', label: '#', type: 'counter', source: 'computed' },
-
-                { key: 'idSucursal', label: 'ID SUCURSAL', type: 'guid' },
-                { key: 'fechaVenta', label: 'FECHA', type: 'date' },
-                { key: 'idVenta', label: 'ID VENTA', type: 'guid' },
-                { key: 'idCliente', label: 'ID CLIENTE', type: 'guid' },
-
-                { key: 'metodoPago', label: 'MÉTODO DE PAGO', type: 'badge' },
-                { key: 'total', label: 'TOTAL', type: 'currency' },
-                { key: 'cantidadProductos', label: 'CANTIDAD VENDIDA', type: 'number' },
-
-                { key: 'estado', label: 'ESTADO DE VENTA', type: 'status' },
-
-                { key: 'creadoEn', label: 'CREADO EN', type: 'datetime' },
-                { key: 'actualizadoEn', label: 'ACTUALIZADO EN', type: 'datetime' },
-
-                { key: 'creadoPor', label: 'CREADO POR', type: 'guid' },
-                { key: 'actualizadoPor', label: 'ACTUALIZADO POR', type: 'guid' },
-
-                { key: 'actions', label: '', type: 'actions', source: 'ui' }
-            ]
-        };
+    // =========================================================
+    // CONSTRUCTOR / INIT
+    // =========================================================
+    constructor(
+        private readonly ventasService: VentasService
+    ) {
+        this.dataSource.filterPredicate =
+            this.globalFilterPredicate();
+        this.loadData();
     }
 
-    private InitializeFilterEngine() {
-
-        return new FilterEngine<VentaFilter>(
-            [
-                {
-                    field: 'estado',
-                    filter: {
-                        styleClass: "estado-badge",
-                        label: "Estado de Venta",
-                        filterType: FilterType.MULTI_SELECT,
-                        dataType: DataType.SELECT,
-                        options: Object.values(EstadoVenta).map(value => ({
-                            label: value.includes('_')
-                                ? humanizeEnum({
-                                    value,
-                                    connectors:
-                                        [{ index: 0, word: 'de' }]
-                                })
-                                : humanizeEnum({ value }),
-
-                            value
-                        }))
-                    }
-                },
-                {
-                    field: 'metodoPago',
-                    filter: {
-                        label: "Método de Pago",
-                        filterType: FilterType.MULTI_SELECT,
-                        dataType: DataType.SELECT,
-                        options: Object.values(MetodoDePago).map(value => ({
-                            label: value.includes('_')
-                                ? humanizeEnum({
-                                    value,
-                                    connectors:
-                                        [{ index: 0, word: 'de' }]
-                                })
-                                : humanizeEnum({ value }),
-
-                            value
-                        }))
-                    }
-                },
-
-                {
-                    field: 'total',
-                    filter: {
-                        label: "En Cantidad Monetaria alrededor de:",
-                        filterType: FilterType.NUMBER_RANGE,
-                        dataType: DataType.NUMBER
-                    }
-                },
-
-                {
-                    field: 'fechaVenta',
-                    filter: {
-                        label: "Entre las Fechas:",
-                        filterType: FilterType.DATE_RANGE,
-                        dataType: DataType.DATETIME
-                    }
-                },
-
-                {
-                    field: 'idSucursal',
-                    filter: {
-                        label: "ID Sucursal",
-                        filterType: FilterType.EQUALS,
-                        dataType: DataType.GUID
-                    }
-                },
-                {
-                    field: 'idVenta',
-                    filter: {
-                        label: "ID Venta",
-                        filterType: FilterType.EQUALS,
-                        dataType: DataType.GUID
-                    }
-                },
-                {
-                    field: 'idCliente',
-                    filter: {
-                        label: "ID Cliente",
-                        filterType: FilterType.EQUALS,
-                        dataType: DataType.GUID
-                    }
-                }
-            ],
-            {
-                estado: [],
-                metodoPago: [],
-                total: { min: null, max: null },
-                fechaVenta: { from: '', to: '' },
-                idSucursal: '',
-                idVenta: '',
-                idCliente: ''
-            }
-        );
-    }
 
     // =========================================================
     // STATE
@@ -163,8 +56,12 @@ export class Ventas {
     isLoaded = signal(false);
     isApiError = signal(false);
 
+    isOpening = signal(false);
     isClosing = signal(false);
     isDeleting = signal(false);
+
+    isOpeningDialog = signal(false);
+    isClosingDialog = signal(false);
 
     isDeleteOpen = signal(false);
     isDeleteClosing = signal(false);
@@ -201,10 +98,10 @@ export class Ventas {
     // =========================================================
     // FILTER STATE
     // =========================================================
+    filterEngine = InitializeFilterEngine();
+
     isFilterOpen = signal(false);
     activeFilterCount = signal(0);
-
-    filterEngine = this.InitializeFilterEngine();
 
     filterState = this.filterEngine.createState();
     readonly filterRules = this.filterEngine.rules;
@@ -253,10 +150,15 @@ export class Ventas {
 
     openFilter() {
         this.isFilterOpen.set(true);
+        this.isOpening.set(true);
+
+        setTimeout(() => {
+            this.isOpening.set(false);
+        }, 16)
     }
 
     closeFilter() {
-        this.isFilterOpen.set(false);
+        this.closeModal("filter");
     }
 
     applyFilter() {
@@ -370,7 +272,7 @@ export class Ventas {
     // =========================================================
     // TABLE CONFIG
     // =========================================================
-    ventasSchema = this.InitializeTableSchema();
+    ventasSchema = InitializeTableSchema();
 
     get displayedColumns(): string[] {
         return this.ventasSchema.fields
@@ -393,26 +295,9 @@ export class Ventas {
         );
     }
 
-    guidColumns = [
-        'idSucursal',
-        'idProducto',
-        'idVenta',
-        'idCliente',
-        'creadoPor',
-        'actualizadoPor'
-    ];
+    guidColumns = GUID_COLUMNS;
 
-    // =========================================================
-    // CONSTRUCTOR / INIT
-    // =========================================================
-    constructor(
-        private readonly ventasService: VentasService
-    ) {
-        this.dataSource.filterPredicate =
-            this.globalFilterPredicate();
-        this.loadData();
-    }
-
+    
     // =========================================================
     // DATA LOADING
     // =========================================================
@@ -490,45 +375,18 @@ export class Ventas {
 
                 { key: 'creadoPor', label: 'Creado por', type: 'guid', required: true }
             ]
-        };
+        } as DynamicCreateModel;
 
-        // init defaults
-        this.formCreateState = this.createModel.fields.reduce((acc, field) => {
-
-            switch (field.type) {
-
-                case 'number':
-                    acc[field.key] = +(Math.random() * (1500 - 200) + 200).toFixed(2);
-                    break;
-
-                case 'int':
-                    acc[field.key] = Math.floor(Math.random() * (75 - 3 + 1)) + 3;
-                    break;
-
-                case 'select':
-                    const options = field.options ?? [];
-
-                    acc[field.key] =
-                        options.length > 0
-                            ? options[Math.floor(Math.random() * options.length)].value
-                            : '';
-
-                    break;
-
-                case 'guid':
-                    acc[field.key] = this.generateGuid();
-                    break;
-
-                default:
-                    acc[field.key] = '';
-            }
-
-            return acc;
-
-        }, {} as Record<string, any>);
+        // ACC: Objeto en construcción, FIELD: Propiedad actual
+        this.formCreateState = InitializeDefaultValues(this.createModel);
 
         this.isCreateOpen.set(true);
         this.updateFormValidity('create');
+        this.isOpening.set(true);
+
+        setTimeout(() => {
+            this.isOpening.set(false);
+        }, 16);
     }
 
     submitCreate() {
@@ -633,6 +491,12 @@ export class Ventas {
         this.originalFormState = structuredClone(this.formUpdateState);
         this.isUpdateOpen.set(true);
         this.updateFormValidity('update');
+
+        this.isOpening.set(true);
+
+        setTimeout(() => {
+            this.isOpening.set(false);
+        }, 16);
     }
 
     submitUpdate() {
@@ -682,6 +546,12 @@ export class Ventas {
     deleteVenta(row: VentasResponse) {
         this.deleteTarget = row;
         this.isDeleteOpen.set(true);
+
+        this.isOpening.set(true);
+
+        setTimeout(() => {
+            this.isOpening.set(false);
+        }, 16);
     }
 
     confirmDelete() {
@@ -715,13 +585,7 @@ export class Ventas {
     }
 
     closeDeleteModal() {
-        this.isDeleteClosing.set(true);
-
-        setTimeout(() => {
-            this.isDeleteOpen.set(false);
-            this.isDeleteClosing.set(false);
-            this.deleteTarget = null;
-        }, 200);
+        this.closeModal("delete");
     }
 
     // =========================================================
@@ -755,14 +619,22 @@ export class Ventas {
         this.updateFormValidity(action);
     }
 
-    closeModal() {
+    closeModal(action: string = "create") {
         this.isClosing.set(true);
-        this.isFormValid.set(false);
+
+        if (action != "delete") {
+            this.isFormValid.set(false);
+        }
 
         setTimeout(() => {
-            this.isCreateOpen.set(false);
+            if (action === "create") this.isCreateOpen.set(false);
+            if (action === "update") this.isUpdateOpen.set(false);
+            if (action === "delete") this.isDeleteOpen.set(false);
+            if (action === "filter") this.isFilterOpen.set(false);
+
             this.isClosing.set(false);
-            this.isDirty.set(false);
+            
+            if (action != "delete") this.isDirty.set(false);
         }, 200);
     }
 
@@ -797,7 +669,7 @@ export class Ventas {
             }
 
             if (field.type === 'guid' || field.type === 'guid-text') {
-                if (!this.isValidGuid(value)) {
+                if (!isValidGuid(value)) {
                     this.isFormValid.set(false);
                     return;
                 }
@@ -817,13 +689,6 @@ export class Ventas {
         this.isFormValid.set(true);
     }
 
-    private isValidGuid(value: any): boolean {
-        if (typeof value !== 'string') return false;
-
-        return /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/
-            .test(value.trim());
-    }
-
     // =========================================================
     // UPDATE CONTROL HELPERS
     // =========================================================
@@ -832,8 +697,16 @@ export class Ventas {
     }
 
     discardChanges() {
-        this.isDiscardWarningOpen.set(false);
+        this.closeDiscardWarning();
         this.forceCloseUpdate();
+    }
+
+    closeDiscardWarning() {
+        this.isClosingDialog.set(true);
+        setTimeout(() => {
+            this.isClosingDialog.set(false);
+            this.isDiscardWarningOpen.set(false);
+        }, 200);
     }
 
     closeUpdateModal(action: UpdateModalAction = 'close') {
@@ -845,6 +718,11 @@ export class Ventas {
 
         if (this.hasChanges()) {
             this.isDiscardWarningOpen.set(true);
+            this.isOpeningDialog.set(true);
+
+        setTimeout(() => {
+            this.isOpeningDialog.set(false);
+        }, 16);
             return;
         }
 
@@ -852,8 +730,7 @@ export class Ventas {
     }
 
     forceCloseUpdate() {
-        this.isUpdateOpen.set(false);
-        this.updateModel = null;
+        this.closeModal("update");
     }
 
     // =========================================================
@@ -864,294 +741,15 @@ export class Ventas {
             JSON.stringify(this.formUpdateState) !== JSON.stringify(this.originalFormState)
         );
     }
-
-    private generateGuid(): string {
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-            const r = (Math.random() * 16) | 0;
-            const v = c === 'x' ? r : (r & 0x3) | 0x8;
-            return v.toString(16);
-        });
-    }
+    
 
     // =========================================================
     // EVENT TYPE MAPPING
     // =========================================================
-    getEstadoClass(estado: string): string {
-
-        switch (estado) {
-
-            case 'PENDIENTE':
-                return `
-                bg-amber-50
-                text-amber-700
-                ring-1 ring-amber-200/60
-            `;
-
-            case 'PAGADA':
-                return `
-                bg-emerald-50
-                text-emerald-700
-                ring-1 ring-emerald-200/60
-            `;
-
-            case 'PROCESANDO':
-                return `
-                bg-blue-50
-                text-blue-700
-                ring-1 ring-blue-200/60
-            `;
-
-            case 'COMPLETADA':
-                return `
-                bg-teal-50
-                text-teal-700
-                ring-1 ring-teal-200/60
-            `;
-
-            case 'CANCELADA':
-                return `
-                bg-rose-50
-                text-rose-700
-                ring-1 ring-rose-200/60
-            `;
-
-            case 'ANULADA':
-                return `
-                bg-zinc-100
-                text-zinc-600
-                ring-1 ring-zinc-200
-            `;
-
-            case 'REEMBOLSADA':
-                return `
-                bg-violet-50
-                text-violet-700
-                ring-1 ring-violet-200/60
-            `;
-
-            case 'DEVUELTA':
-                return `
-                bg-orange-50
-                text-orange-700
-                ring-1 ring-orange-200/60
-            `;
-
-            default:
-                return `
-                bg-slate-100
-                text-slate-600
-                ring-1 ring-slate-200
-            `;
-        }
-    }
-
-    getMetodoPagoClass(metodo: string): string {
-
-        switch (metodo) {
-
-            case 'EFECTIVO':
-                return `
-                bg-emerald-50
-                text-emerald-700
-                ring-1 ring-emerald-200/60
-            `;
-
-            case 'TARJETA_CREDITO':
-                return `
-                bg-sky-50
-                text-sky-700
-                ring-1 ring-sky-200/60
-            `;
-
-            case 'TARJETA_DEBITO':
-                return `
-                bg-indigo-50
-                text-indigo-700
-                ring-1 ring-indigo-200/60
-            `;
-
-            case 'TRANSFERENCIA_BANCARIA':
-                return `
-                bg-violet-50
-                text-violet-700
-                ring-1 ring-violet-200/60
-            `;
-
-            case 'CHEQUE':
-                return `
-                bg-amber-50
-                text-amber-700
-                ring-1 ring-amber-200/60
-            `;
-
-            case 'OTRO':
-                return `
-                bg-zinc-100
-                text-zinc-700
-                ring-1 ring-zinc-200
-            `;
-
-            default:
-                return `
-                bg-slate-100
-                text-slate-700
-                ring-1 ring-slate-200
-            `;
-        }
-    }
-
-    getMetodoPagoIcon(metodo: string): string {
-
-        switch (metodo) {
-
-            case 'EFECTIVO':
-                return 'payments';
-
-            case 'TARJETA_CREDITO':
-                return 'credit_card';
-
-            case 'TARJETA_DEBITO':
-                return 'credit_score';
-
-            case 'TRANSFERENCIA_BANCARIA':
-                return 'account_balance';
-
-            case 'CHEQUE':
-                return 'receipt_long';
-
-            case 'OTRO':
-                return 'more_horiz';
-
-            default:
-                return 'wallet';
-        }
-    }
-
-    getMetodoPagoLabel(metodo: string): string {
-
-        switch (metodo) {
-
-            case 'EFECTIVO':
-                return 'Efectivo';
-
-            case 'TARJETA_CREDITO':
-                return 'Tarjeta Crédito';
-
-            case 'TARJETA_DEBITO':
-                return 'Tarjeta Débito';
-
-            case 'TRANSFERENCIA_BANCARIA':
-                return 'Transferencia';
-
-            case 'CHEQUE':
-                return 'Cheque';
-
-            case 'OTRO':
-                return 'Otro';
-
-            default:
-                return metodo;
-        }
-    }
-
-    getEstadoIcon(estado: string): string {
-        switch (estado) {
-
-            case 'PENDIENTE':
-                return 'schedule';
-
-            case 'PROCESANDO':
-                return 'autorenew';
-
-            case 'PAGADA':
-                return 'payments';
-
-            case 'COMPLETADA':
-                return 'check_circle';
-
-            case 'CANCELADA':
-                return 'cancel';
-
-            case 'ANULADA':
-                return 'block';
-
-            case 'REEMBOLSADA':
-                return 'keyboard_return';
-
-            case 'DEVUELTA':
-                return 'undo';
-
-            default:
-                return 'help';
-        }
-    }
-
-    getMontoMeta(estado: string): { sign: string; class: string; prefix: string } {
-
-        switch (estado) {
-
-            case 'PAGADA':
-                return {
-                    sign: '+',
-                    prefix: '',
-                    class: 'text-emerald-600'
-                };
-
-            case 'COMPLETADA':
-                return {
-                    sign: '+',
-                    prefix: '',
-                    class: 'text-teal-600'
-                };
-
-            case 'PENDIENTE':
-                return {
-                    sign: '~',
-                    prefix: '',
-                    class: 'text-amber-500'
-                };
-
-            case 'PROCESANDO':
-                return {
-                    sign: '~',
-                    prefix: '',
-                    class: 'text-blue-600'
-                };
-
-            case 'CANCELADA':
-                return {
-                    sign: '-',
-                    prefix: '',
-                    class: 'text-rose-600'
-                };
-
-            case 'ANULADA':
-                return {
-                    sign: '×',
-                    prefix: '',
-                    class: 'text-zinc-500'
-                };
-
-            case 'REEMBOLSADA':
-                return {
-                    sign: '↺',
-                    prefix: '',
-                    class: 'text-violet-600'
-                };
-
-            case 'DEVUELTA':
-                return {
-                    sign: '↩',
-                    prefix: '',
-                    class: 'text-orange-600'
-                };
-
-            default:
-                return {
-                    sign: '?',
-                    prefix: '',
-                    class: 'text-slate-500'
-                };
-        }
-    }
+    getMetodoPagoClass = getMetodoPagoClass;
+    getMetodoPagoIcon = getMetodoPagoIcon;
+    getMetodoPagoLabel = getMetodoPagoLabel;
+    getEstadoClass = getEstadoClass;
+    getEstadoIcon = getEstadoIcon;
+    getMontoMeta = getMontoMeta;
 }

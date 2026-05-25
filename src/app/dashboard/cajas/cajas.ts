@@ -7,8 +7,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 
 import { CajasResponse, CajasService, CreateCaja } from '../../services/cajas.service';
-import { DynamicCreateModel } from '../../helpers/fieldConfig';
-import { FilterEngine } from '../../helpers/FilterEngine';
+import { DynamicCreateModel } from '../../helpers/ActionsHelper';
+import { FilterEngine } from '../../engines/FilterEngine';
 
 type UpdateModalAction = 'close' | 'reset';
 
