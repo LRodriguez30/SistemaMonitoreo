@@ -88,6 +88,10 @@ export class VentasService {
     return this.http.post(`${this.url}`, data);
   }
 
+  createVentas(data: CreateVenta[]) {
+    return this.http.post(`${this.url}/varios`, data);
+  }
+
   deleteVenta(idSucursal: string, idVenta: string) {
     return this.http.delete(`${this.url}/${idSucursal}/${idVenta}`);
   }

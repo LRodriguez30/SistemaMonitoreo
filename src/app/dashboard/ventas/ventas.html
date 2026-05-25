@@ -1,7 +1,6 @@
-@if (isCreateOpen()) {
+@if (createState().open && createState().mode === 'single') {
 
-<div class="fixed inset-0 z-[120] flex items-center justify-center bg-black/60 backdrop-blur-md p-4"
-  (click)="closeModal('create')">
+<div class="fixed inset-0 z-[120] flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
 
   <!-- MODAL -->
   <div class="relative z-10 bg-white text-gray-900 p-6 rounded-2xl w-[420px]
@@ -11,10 +10,10 @@
     (click)="$event.stopPropagation()">
 
     <h2 class="text-lg font-semibold mb-4">
-      {{ createModel?.title }}
+      {{ createModel.title }}
     </h2>
 
-    @for (field of createModel?.fields; track field.key) {
+    @for (field of createModel.fields; track field.key) {
 
     <div class="mb-3">
 
@@ -94,6 +93,555 @@
         </button>
 
       </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+}
+
+@if (createState().open && createState().mode === 'multi') {
+
+<div class="fixed inset-0 z-[120] flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
+
+  <div class="relative z-10 bg-white rounded-2xl w-[1600px] max-w-[95vw]
+              shadow-2xl border border-gray-200
+              transition-all duration-200 ease-out
+              overflow-hidden" (click)="$event.stopPropagation()">
+
+    <!-- HEADER -->
+    <div class="flex items-center justify-between px-5 py-4 border-b border-gray-200">
+
+      <div>
+        <h2 class="text-lg font-semibold text-gray-800">
+          Creación múltiple de ventas
+        </h2>
+        <p class="text-xs text-gray-500">
+          Añade registros como si fuera una hoja de cálculo
+        </p>
+      </div>
+
+      <!-- ACTIONS -->
+      <div class="flex items-center gap-3">
+
+        <!-- IMPORT CSV -->
+        <input #csvInput type="file" accept=".csv" class="hidden" />
+
+        <button class="cursor-pointer inline-flex items-center gap-2
+         px-4 py-2 rounded-xl
+
+         border border-cyan-200
+         bg-cyan-50 text-cyan-700 text-sm font-medium
+
+         hover:bg-cyan-100
+         active:scale-[0.98]
+
+         transition-all" (click)="handleCsvLoad(csvInput)">
+
+          <iconify-icon icon="lucide:upload"></iconify-icon>
+
+          Cargar CSV
+
+        </button>
+
+        @if (multiRows().length > 0) {
+        <button class="cursor-pointer px-4 py-2 rounded-xl bg-red-100 text-red-600
+         hover:bg-red-200 active:scale-95 transition-all" (click)="clearAllRows()">
+          Eliminar todos los registros
+        </button>
+        }
+      </div>
+    </div>
+
+    <!-- TABLE AREA -->
+    <div class="p-4 overflow-auto max-h-[60vh]">
+
+      <table class="w-full border-collapse text-sm">
+
+        <!-- HEADER -->
+        <thead>
+          <tr class="bg-gray-50 border-b border-gray-200">
+
+            <th class="text-left p-2 text-xs font-semibold text-gray-500">
+              #
+            </th>
+
+            @for (field of createModel.fields; track field.key) {
+            <th class="text-left p-2 text-xs font-semibold text-gray-500">
+              {{ field.label }}
+            </th>
+            }
+
+            <th class="p-2"></th>
+          </tr>
+        </thead>
+
+        <!-- BODY -->
+        <tbody>
+
+          @for (row of multiRows(); let i = $index; track i) {
+
+          <tr class="border-b border-gray-100 hover:bg-gray-50 transition">
+
+            <!-- INDEX -->
+            <td class="p-2 text-gray-400 text-xs">
+              {{ i + 1 }}
+            </td>
+
+            <!-- DYNAMIC FIELDS -->
+            @for (field of createModel.fields; track field.key) {
+
+            <td class="p-1">
+
+              @if (field.type === 'select') {
+
+              <select class="w-full bg-transparent border border-gray-200 rounded-lg px-2 py-1
+         cursor-pointer hover:border-blue-300
+         focus:outline-none focus:ring-2 focus:ring-blue-200
+         transition-all" [value]="row[field.key] ?? ''" (change)="updateCell(i, field.key, $any($event.target).value)">
+
+                @for (opt of field.options; track opt.value) {
+                <option [value]="opt.value" [selected]="row[field.key] === opt.value">
+                  {{ opt.label }}
+                </option>
+                }
+
+              </select>
+
+              } @else {
+
+              <input class="w-full border border-gray-200 rounded-lg px-2 py-1
+         hover:border-gray-300 focus:border-blue-400
+         focus:ring-2 focus:ring-blue-100
+         outline-none transition-all cursor-pointer"
+                [type]="field.type === 'number' || field.type === 'int' ? 'number' : 'text'" [value]="row[field.key]"
+                (input)="updateCell(i, field.key, $any($event.target).value)" />
+
+              }
+
+            </td>
+
+            }
+
+            <!-- ACTIONS -->
+            <td class="p-2">
+
+              <button class="cursor-pointer px-2 py-1 rounded-lg text-red-500
+         hover:bg-red-50 hover:text-red-600
+         active:scale-95 transition-all duration-150" (click)="removeRow(i)">
+                ✕
+              </button>
+
+            </td>
+
+          </tr>
+
+          }
+
+        </tbody>
+      </table>
+
+      <!-- EMPTY STATE -->
+      @if (multiRows().length === 0) {
+
+      <div class="flex flex-col items-center justify-center py-10 text-gray-400">
+
+        <span class="text-sm">No hay registros aún</span>
+
+        <button class="mt-3 cursor-pointer px-4 py-2 rounded-xl bg-blue-500 text-white
+         hover:bg-blue-600 active:scale-95 transition-all" (click)="addRow()">
+          Agregar primera fila
+        </button>
+
+      </div>
+
+      }
+
+    </div>
+
+    <!-- FOOTER -->
+    <div class="flex items-center justify-between px-5 py-4 border-t border-gray-200">
+
+      @if (multiRows().length != 0) {
+      <button class="cursor-pointer px-4 py-2 rounded-xl bg-gray-100 text-gray-700
+         hover:bg-gray-200 active:scale-95 transition-all" (click)="addRow()">
+        + Agregar fila
+      </button>
+      }
+
+      <div class="flex gap-3">
+
+        <button class="cursor-pointer px-5 py-2 rounded-xl border border-gray-300
+                 hover:bg-gray-50 active:scale-95 transition-all" (click)="closeModal('create')">
+          Cancelar
+        </button>
+
+        <button class="cursor-pointer px-5 py-2 rounded-xl bg-blue-600 text-white
+         hover:bg-blue-700 shadow-sm hover:shadow-md
+         active:scale-95 transition-all" [disabled]="multiRows().length === 0" (click)="submitMultiCreate()">
+          Guardar registros
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+}
+
+@if (createState().open && createState().mode === 'import') {
+
+<div class="fixed inset-0 z-[140] flex items-center justify-center
+            bg-black/50 backdrop-blur-md p-4">
+
+  <!-- PANEL -->
+  <div class="w-[620px] max-w-[95vw]
+              bg-white rounded-3xl
+              border border-gray-200
+              shadow-2xl overflow-hidden">
+
+    <!-- HEADER -->
+    <div class="px-6 py-5 border-b border-gray-100
+                flex items-center justify-between">
+
+      <div>
+        <h2 class="text-lg font-semibold text-gray-800">
+          Importar registros CSV
+        </h2>
+
+        <p class="text-sm text-gray-500 mt-1">
+          Sube un archivo CSV para crear múltiples registros automáticamente
+        </p>
+      </div>
+
+      <button mat-icon-button (click)="closeModal('create')">
+        <mat-icon>close</mat-icon>
+      </button>
+
+    </div>
+
+    <!-- BODY -->
+    <div class="p-6 space-y-5">
+
+      <!-- DROP AREA -->
+      <label class="relative flex flex-col items-center justify-center
+               border-2 border-dashed border-cyan-300
+               rounded-2xl
+               bg-cyan-50/40
+               hover:bg-cyan-50
+               transition-all duration-200
+               cursor-pointer
+
+               min-h-[240px]
+               text-center px-6 py-6" (dragover)="onDragOver($event)" (drop)="onFileDrop($event)">
+
+        <input type="file" accept=".csv" class="hidden" (change)="onFileSelected($event)" />
+
+        <!-- ICON -->
+        <div class="w-16 h-16 rounded-2xl
+                    bg-cyan-100 text-cyan-700
+                    flex items-center justify-center mb-4">
+
+          <iconify-icon icon="lucide:file-spreadsheet" class="text-3xl"></iconify-icon>
+
+        </div>
+
+        <!-- TEXT -->
+        <div class="space-y-2">
+
+          <h3 class="text-sm font-semibold text-gray-800">
+            Arrastra tu archivo CSV aquí
+          </h3>
+
+          <p class="text-xs text-gray-500 leading-relaxed max-w-sm">
+            También puedes hacer clic para seleccionar un archivo desde tu dispositivo
+          </p>
+
+        </div>
+
+        <!-- BUTTON -->
+        <div class="mt-5 inline-flex items-center gap-2
+                 px-4 py-2 rounded-xl
+                 bg-cyan-600 text-white text-sm font-medium
+
+                 hover:bg-cyan-700
+                 shadow-sm hover:shadow-md
+                 transition-all">
+
+          <iconify-icon icon="lucide:upload"></iconify-icon>
+
+          Seleccionar archivo
+
+        </div>
+
+      </label>
+
+      <!-- FILE LIST -->
+      @if (uploadedCsvFiles().length > 0) {
+
+      <div class="space-y-3">
+
+        <div class="flex items-center justify-between">
+
+          <h3 class="text-sm font-semibold text-gray-700">
+            Archivos cargados
+          </h3>
+
+          <span class="text-xs px-2 py-1 rounded-full
+             bg-cyan-100 text-cyan-700">
+            {{ uploadedCsvFiles().length }} archivos
+          </span>
+
+        </div>
+
+        <div class="space-y-3
+                 max-h-[150px]
+                 overflow-y-auto
+                 pr-1">
+
+          @for (item of uploadedCsvFiles(); track item.file.name; let i = $index) {
+
+          <div class="flex items-center justify-between
+           rounded-2xl border border-cyan-200
+           bg-cyan-50 px-4 py-3">
+
+            <!-- INFO -->
+            <div class="flex items-center gap-3 min-w-0">
+
+              <div class="w-10 h-10 rounded-xl
+               bg-cyan-100 text-cyan-700
+               flex items-center justify-center
+               shrink-0">
+
+                <iconify-icon icon="lucide:file-text"></iconify-icon>
+
+              </div>
+
+              <div class="flex flex-col min-w-0">
+
+                <span class="text-sm font-medium text-gray-800 truncate">
+                  {{ item.file.name }}
+                </span>
+
+                <span class="text-xs text-cyan-700">
+                  @if (item.rowCount > 1) {
+                  {{ item.rowCount }} registros ·
+                  }
+                  @else if (item.rowCount === 1) {
+                  {{ item.rowCount }} registro ·
+                  }
+                  @else {
+                  No se encontró ningún registro.
+                  }
+                  {{ (item.file.size / 1024).toFixed(1) }} KB
+
+                </span>
+
+              </div>
+
+            </div>
+
+            <!-- ACTIONS -->
+            <div class="flex items-center gap-2 shrink-0">
+
+              <!-- EJECUTAR -->
+              <button class="cursor-pointer inline-flex items-center gap-2
+               px-3 py-2 rounded-xl
+
+               border border-cyan-200
+               bg-white text-cyan-700 text-sm
+
+               hover:bg-cyan-100
+               active:scale-[0.98]
+
+               transition-all" (click)="processCsvFile(item.file)">
+
+                <iconify-icon icon="lucide:rotate-ccw"></iconify-icon>
+
+                Usar
+
+              </button>
+
+              <!-- ELIMINAR -->
+              <button class="cursor-pointer inline-flex items-center justify-center
+
+               w-10 h-10 rounded-xl
+
+               border border-red-200
+               bg-white text-red-600
+
+               hover:bg-red-50
+               hover:border-red-300
+
+               active:scale-[0.96]
+
+               transition-all" (click)="removeUploadedCsv(i)">
+
+                <iconify-icon icon="lucide:trash-2"></iconify-icon>
+
+              </button>
+
+            </div>
+
+          </div>
+
+          }
+        </div>
+
+      </div>
+
+      }
+
+      <!-- ERROR -->
+      @if (csvError()) {
+
+      <div class="rounded-2xl border border-red-200
+         bg-red-50 px-4 py-3">
+
+        <div class="flex items-start gap-3">
+
+          <!-- ICON -->
+          <div class="w-9 h-9 rounded-xl
+
+             bg-red-100 text-red-600
+
+             flex items-center justify-center
+
+             shrink-0">
+
+            <iconify-icon icon="lucide:file-warning" class="text-lg"></iconify-icon>
+
+          </div>
+
+          <!-- CONTENT -->
+          <div class="min-w-0 flex-1">
+
+            <h4 class="text-sm font-semibold text-red-700">
+              Error al procesar el CSV
+            </h4>
+
+            <p class="text-sm text-red-600
+               leading-relaxed mt-1
+               break-words">
+              {{ csvError() }}
+            </p>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      }
+
+      <!-- WARNING -->
+      @if (csvWarning()) {
+
+      <div class="rounded-2xl border border-amber-200
+         bg-amber-50 px-4 py-3">
+
+        <div class="flex items-start gap-3">
+
+          <!-- ICON -->
+          <div class="w-9 h-9 rounded-xl
+
+             bg-amber-100 text-amber-700
+
+             flex items-center justify-center
+
+             shrink-0">
+
+            <iconify-icon icon="lucide:triangle-alert" class="text-lg"></iconify-icon>
+
+          </div>
+
+          <!-- CONTENT -->
+          <div class="min-w-0 flex-1">
+
+            <h4 class="text-sm font-semibold text-amber-800">
+              Advertencia
+            </h4>
+
+            <p class="text-sm text-amber-700
+               leading-relaxed mt-1
+               break-words">
+              {{ csvWarning() }}
+            </p>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      }
+
+      <!-- HELP -->
+      <div class="rounded-2xl border border-gray-200
+               bg-gray-50 p-4 space-y-3">
+
+        <div class="flex items-center gap-2 text-gray-700">
+
+          <iconify-icon icon="lucide:info"></iconify-icon>
+
+          <span class="text-sm font-medium">
+            Formato requerido
+          </span>
+
+        </div>
+
+        <p class="text-xs text-gray-500 leading-relaxed">
+
+          El archivo CSV debe contener las columnas necesarias
+          para registrar las ventas correctamente.
+
+        </p>
+
+        <!-- TEMPLATE -->
+        <button class="cursor-pointer inline-flex items-center gap-2
+         px-4 py-2 rounded-xl
+
+         border border-gray-300
+         bg-white text-gray-700 text-sm
+
+         hover:bg-gray-100
+         hover:border-gray-400
+
+         active:scale-[0.98]
+         transition-all" (click)="downloadCsvTemplate()">
+
+          <iconify-icon icon="lucide:download"></iconify-icon>
+
+          Descargar plantilla CSV
+
+        </button>
+
+      </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <div class="px-6 py-4 border-t border-gray-100
+             flex justify-end gap-3">
+
+      <button class="cursor-pointer px-5 py-2.5 rounded-xl
+               border border-gray-300
+               bg-white text-gray-700
+
+               hover:bg-gray-50
+               hover:border-gray-400
+
+               active:scale-[0.98]
+               transition-all" (click)="closeModal('create')">
+
+        Cancelar
+
+      </button>
 
     </div>
 
@@ -321,10 +869,8 @@
 
   <div class="relative z-10 bg-white rounded-2xl w-[520px] shadow-2xl
               border border-gray-200 overflow-hidden transition-all duration-200 ease-out"
-    [class.opacity-0]="isClosing() || isOpening()"
-    [class.scale-95]="isClosing() || isOpening()"
-    [class.translate-y-2]="isClosing() || isOpening()"
-    (click)="$event.stopPropagation()">
+    [class.opacity-0]="isClosing() || isOpening()" [class.scale-95]="isClosing() || isOpening()"
+    [class.translate-y-2]="isClosing() || isOpening()" (click)="$event.stopPropagation()">
 
     <!-- HEADER -->
     <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
@@ -451,11 +997,177 @@
                  active:scale-[0.98]
                  disabled:opacity-50 disabled:cursor-not-allowed
                  disabled:shadow-none
-                 transition-all duration-150 ease-out"
-          (click)="applyFilter()">
+                 transition-all duration-150 ease-out" (click)="applyFilter()">
           Aplicar
         </button>
       </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+}
+
+@if (isCreateModeOpen() && createMode() === 'menu') {
+
+<div class="fixed inset-0 z-[130] flex items-center justify-center
+            bg-black/40 backdrop-blur-md">
+
+  <!-- PANEL -->
+  <div class="w-[540px] max-w-[92vw]
+              bg-white/95 backdrop-blur-xl
+              border border-gray-200/70
+              rounded-2xl shadow-2xl
+              p-6 space-y-5
+              animate-in fade-in zoom-in-95">
+
+    <!-- HEADER -->
+    <div class="space-y-1">
+      <div class="px-5 py-4 border-b border-gray-200 flex items-center justify-between">
+        <h2 class="text-lg font-semibold text-gray-800">
+          Nuevo Registro
+        </h2>
+
+        <button mat-icon-button (click)="closeModal('menu')">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <p class="text-sm text-gray-500">
+        Elige cómo deseas crear el registro
+      </p>
+    </div>
+
+    <!-- OPTIONS -->
+    <div class="grid gap-3">
+
+      <!-- UNO SOLO -->
+      <button class="cursor-pointer group relative flex items-center gap-4 p-4 rounded-xl
+               border border-gray-200 bg-white/60 backdrop-blur-sm
+               transition-all duration-200 ease-out
+
+               hover:bg-white hover:border-gray-300
+               hover:shadow-lg hover:shadow-blue-100
+               hover:-translate-y-0.5
+
+               active:scale-[0.98]
+
+               focus:outline-none focus:ring-2 focus:ring-blue-400/30" (click)="openCreate('single')">
+
+        <div class="flex items-center justify-center w-10 h-10 rounded-lg
+                    bg-blue-50 text-blue-600
+                    group-hover:bg-blue-100 transition">
+          <iconify-icon icon="lucide:file-plus" class="text-xl"></iconify-icon>
+        </div>
+
+        <div class="text-left">
+          <p class="text-sm font-semibold text-gray-800">
+            Un solo registro
+          </p>
+          <p class="text-xs text-gray-500">
+            Formulario estándar con validación completa
+          </p>
+        </div>
+
+        <div class="ml-auto text-gray-300 group-hover:text-blue-500 transition">
+          <iconify-icon icon="lucide:chevron-right"></iconify-icon>
+        </div>
+
+        <!-- glow lateral -->
+        <div class="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100
+                    bg-gradient-to-r from-blue-50/40 to-transparent transition"></div>
+
+      </button>
+
+      <!-- MULTIPLES -->
+      <button class="cursor-pointer group relative flex items-center gap-4 p-4 rounded-xl
+               border border-gray-200 bg-white/60 backdrop-blur-sm
+               transition-all duration-200 ease-out
+
+               hover:bg-white hover:border-gray-300
+               hover:shadow-lg hover:shadow-purple-100
+               hover:-translate-y-0.5
+
+               active:scale-[0.98]
+
+               focus:outline-none focus:ring-2 focus:ring-purple-400/30" (click)="openCreate('multi')">
+
+        <div class="flex items-center justify-center w-10 h-10 rounded-lg
+                    bg-purple-50 text-purple-600
+                    group-hover:bg-purple-100 transition">
+          <iconify-icon icon="lucide:layers" class="text-xl"></iconify-icon>
+        </div>
+
+        <div class="text-left">
+          <p class="text-sm font-semibold text-gray-800">
+            Múltiples registros
+          </p>
+          <p class="text-xs text-gray-500">
+            Tabla editable con validación por fila
+          </p>
+        </div>
+
+        <div class="ml-auto text-gray-300 group-hover:text-purple-500 transition">
+          <iconify-icon icon="lucide:chevron-right"></iconify-icon>
+        </div>
+
+        <div class="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100
+                    bg-gradient-to-r from-purple-50/40 to-transparent transition"></div>
+
+      </button>
+
+      <!-- EXCEL -->
+      <button class="cursor-pointer group relative flex items-center gap-4 p-4 rounded-xl
+         border border-cyan-200 bg-cyan-50/40 backdrop-blur-sm
+         transition-all duration-200 ease-out
+
+         hover:bg-white hover:border-cyan-300
+         hover:shadow-lg hover:shadow-cyan-100
+         hover:-translate-y-0.5
+
+         active:scale-[0.98]
+
+         focus:outline-none focus:ring-2 focus:ring-cyan-400/30" (click)="openCreate('import')">
+
+        <!-- ICON -->
+        <div class="flex items-center justify-center w-10 h-10 rounded-lg
+           bg-cyan-100 text-cyan-700
+           group-hover:bg-cyan-200 transition">
+
+          <iconify-icon icon="lucide:file-spreadsheet" class="text-xl"></iconify-icon>
+
+        </div>
+
+        <!-- TEXT -->
+        <div class="text-left">
+
+          <p class="text-sm font-semibold text-gray-800">
+            Importar CSV
+          </p>
+
+          <p class="text-xs text-gray-500">
+            Cargar registros masivos desde un archivo CSV
+          </p>
+
+        </div>
+
+        <!-- RIGHT ICON -->
+        <div class="ml-auto text-gray-300
+           group-hover:text-cyan-500 transition">
+
+          <iconify-icon icon="lucide:chevron-right"></iconify-icon>
+
+        </div>
+
+        <!-- HOVER GLOW -->
+        <div class="absolute inset-0 rounded-xl opacity-0
+           group-hover:opacity-100
+           bg-gradient-to-r from-cyan-100/40 to-transparent
+           transition"></div>
+
+      </button>
 
     </div>
 
@@ -559,7 +1271,7 @@
       </button>
 
       <!-- CREATE -->
-      <button class="create-btn" (click)="openCreate()">
+      <button class="create-btn" (click)="openCreateMenu()">
         <iconify-icon icon="lucide:plus"></iconify-icon>
         <span>Nuevo registro</span>
       </button>
