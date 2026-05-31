@@ -1,10 +1,11 @@
 @if (createState().open && createState().mode === 'single') {
 
-<div class="fixed inset-0 z-[120] flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
+<div
+  class="fixed inset-0 z-120 flex items-center justify-center bg-[rgb(from_var(--clr-bg-1000)_r_g_b_/0.6)] backdrop-blur-md p-4">
 
   <!-- MODAL -->
-  <div class="relative z-10 bg-white text-gray-900 p-6 rounded-2xl w-[420px]
-               shadow-2xl border border-gray-200
+  <div class="relative z-10 bg-(--clr-bg-0) text-(--clr-text-900) p-6 rounded-2xl w-105
+               shadow-2xl border border-(--clr-border-200)
                transition-all duration-200 ease-out" [class.opacity-0]="isClosing() || isOpening()"
     [class.scale-95]="isClosing() || isOpening()" [class.translate-y-2]="isClosing() || isOpening()"
     (click)="$event.stopPropagation()">
@@ -17,32 +18,36 @@
 
     <div class="mb-3">
 
-      <label class="text-sm text-gray-600">
+      <label class="text-sm text-(--clr-text-900)">
         {{ field.label }}
       </label>
 
       @if (field.type === 'select') {
 
-      <select class="w-full bg-gray-50 border border-gray-200 p-2 rounded-lg" [value]="formCreateState[field.key] ?? ''"
-        (change)="setFieldValue(field.key, $any($event.target).value, 'create')">
+      <mat-form-field class="w-full mt-1">
 
-        @for (opt of field.options; track opt.value) {
-        <option [value]="opt.value" [selected]="formCreateState[field.key] === opt.value">
-          {{ opt.label }}
-        </option>
-        }
+        <mat-select [value]="formCreateState[field.key] ?? ''"
+          (selectionChange)="setFieldValue(field.key, $any($event).value, 'create')">
 
-      </select>
+          @for (opt of field.options; track opt.value) {
+          <mat-option [value]="opt.value">
+            {{ opt.label }}
+          </mat-option>
+          }
+
+        </mat-select>
+
+      </mat-form-field>
 
       } @else if (field.type === 'number') {
 
-      <input class="w-full bg-gray-50 border border-gray-200 p-2 rounded-lg" type="number" min="1" step="0.01"
-        placeholder="Monto (ej: 10.50)" [value]="formCreateState[field.key] ?? 1"
+      <input class="w-full bg-(--clr-bg-50) border border-(--clr-border-200) p-2 rounded-lg" type="number" min="1"
+        step="0.01" placeholder="Monto (ej: 10.50)" [value]="formCreateState[field.key] ?? 1"
         (input)="onNumberChange(field.key, $event, 'create')" />
 
       } @else {
 
-      <input class="w-full bg-gray-50 border border-gray-200 p-2 rounded-lg" [type]="field.type"
+      <input class="w-full bg-(--clr-bg-50) border border-(--clr-border-200) p-2 rounded-lg" [type]="field.type"
         [placeholder]="field.label" [value]="formCreateState[field.key] ?? ''"
         (input)="setFieldValue(field.key, $any($event.target).value, 'create')" />
 
@@ -58,8 +63,8 @@
 
         <!-- CANCELAR -->
         <button class="cursor-pointer px-5 py-2.5 rounded-xl
-                     border border-gray-300 bg-white text-gray-700
-                     hover:bg-gray-50 hover:border-gray-400 hover:text-gray-900
+                     border border-(--clr-border-300) bg-(--clr-bg-0) text-(--clr-text-700)
+                     hover:bg-(--clr-bg-50) hover:border-(--clr-border-400) hover:text-(--clr-text-900)
                      active:scale-[0.98]
                      shadow-sm hover:shadow-md
                      transition-all duration-150 ease-out
@@ -71,9 +76,9 @@
 
         <!-- CREAR -->
         <button class="cursor-pointer px-5 py-2.5 rounded-xl
-                     bg-gradient-to-b from-blue-500 to-blue-600
-                     text-white font-semibold
-                     hover:from-blue-600 hover:to-blue-700
+                     bg-linear-to-b from-(--clr-primary-500) to-(--clr-primary-600)
+                     text-(--clr-text-primary-0) font-semibold
+                     hover:from-(--clr-primary-600) hover:to-(--clr-primary-700)
                      hover:shadow-lg hover:shadow-blue-500/25
                      active:scale-[0.98]
                      disabled:opacity-50 disabled:cursor-not-allowed
@@ -83,7 +88,8 @@
 
           @if (isSubmitting()) {
           <span class="flex items-center gap-2">
-            <span class="w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
+            <span
+              class="w-3 h-3 border-2 border-[rgb(from_var(--clr-border-0)_r_g_b_/0.4)] border-t-(--clr-border-0) rounded-full animate-spin"></span>
             Creando...
           </span>
           } @else {
@@ -104,21 +110,22 @@
 
 @if (createState().open && createState().mode === 'multi') {
 
-<div class="fixed inset-0 z-[120] flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
+<div
+  class="fixed inset-0 z-120 flex items-center justify-center bg-[rgb(from_var(--clr-bg-1000)_r_g_b_/0.6)] backdrop-blur-md p-4">
 
-  <div class="relative z-10 bg-white rounded-2xl w-[1600px] max-w-[95vw]
-              shadow-2xl border border-gray-200
+  <div class="relative z-10 bg-(--clr-bg-0) rounded-2xl w-400 max-w-[95vw]
+              shadow-2xl border border-(--clr-border-200)
               transition-all duration-200 ease-out
               overflow-hidden" (click)="$event.stopPropagation()">
 
     <!-- HEADER -->
-    <div class="flex items-center justify-between px-5 py-4 border-b border-gray-200">
+    <div class="flex items-center justify-between px-5 py-4 border-b border-(--clr-border-200)">
 
       <div>
-        <h2 class="text-lg font-semibold text-gray-800">
+        <h2 class="text-lg font-semibold text-(--clr-text-800)">
           Creación múltiple de ventas
         </h2>
-        <p class="text-xs text-gray-500">
+        <p class="text-xs text-(--clr-text-500)">
           Añade registros como si fuera una hoja de cálculo
         </p>
       </div>
@@ -132,10 +139,10 @@
         <button class="cursor-pointer inline-flex items-center gap-2
          px-4 py-2 rounded-xl
 
-         border border-cyan-200
-         bg-cyan-50 text-cyan-700 text-sm font-medium
+         border border-(--clr-csv-menu-200)
+         bg-(--clr-csv-menu-50) text-(--clr-csv-menu-700) text-sm font-medium
 
-         hover:bg-cyan-100
+         hover:bg-(--clr-bg-100)
          active:scale-[0.98]
 
          transition-all" (click)="handleCsvLoad(csvInput)">
@@ -147,8 +154,8 @@
         </button>
 
         @if (multiRows().length > 0) {
-        <button class="cursor-pointer px-4 py-2 rounded-xl bg-red-100 text-red-600
-         hover:bg-red-200 active:scale-95 transition-all" (click)="clearAllRows()">
+        <button class="cursor-pointer px-4 py-2 rounded-xl bg-(--clr-delete-100) text-(--clr-delete-600)
+         hover:bg-(--clr-delete-200) active:scale-95 transition-all" (click)="clearAllRows()">
           Eliminar todos los registros
         </button>
         }
@@ -162,14 +169,14 @@
 
         <!-- HEADER -->
         <thead>
-          <tr class="bg-gray-50 border-b border-gray-200">
+          <tr class="bg-(--clr-bg-50) border-b border-(--clr-border-200)">
 
-            <th class="text-left p-2 text-xs font-semibold text-gray-500">
+            <th class="text-left p-2 text-xs font-semibold text-(--clr-text-500)">
               #
             </th>
 
             @for (field of createModel.fields; track field.key) {
-            <th class="text-left p-2 text-xs font-semibold text-gray-500">
+            <th class="text-left p-2 text-xs font-semibold text-(--clr-text-500)">
               {{ field.label }}
             </th>
             }
@@ -183,38 +190,35 @@
 
           @for (row of multiRows(); let i = $index; track i) {
 
-          <tr class="border-b border-gray-100 hover:bg-gray-50 transition">
+          <tr class="border-b border-(--clr-border-100) hover:bg-(--clr-bg-50) transition">
 
             <!-- INDEX -->
-            <td class="p-2 text-gray-400 text-xs">
+            <td class="p-2 text-(--clr-text-400) text-xs">
               {{ i + 1 }}
             </td>
 
             <!-- DYNAMIC FIELDS -->
             @for (field of createModel.fields; track field.key) {
 
-            <td class="p-1">
+            <td class="p-1 items-center">
 
               @if (field.type === 'select') {
 
-              <select class="w-full bg-transparent border border-gray-200 rounded-lg px-2 py-1
-         cursor-pointer hover:border-blue-300
-         focus:outline-none focus:ring-2 focus:ring-blue-200
-         transition-all" [value]="row[field.key] ?? ''" (change)="updateCell(i, field.key, $any($event.target).value)">
-
-                @for (opt of field.options; track opt.value) {
-                <option [value]="opt.value" [selected]="row[field.key] === opt.value">
-                  {{ opt.label }}
-                </option>
-                }
-
-              </select>
+              <mat-form-field class="w-full">
+                <mat-select [value]="row[field.key]" (selectionChange)="updateCell(i, field.key, $any($event).value)">
+                  @for (opt of field.options; track opt.value) {
+                  <mat-option [value]="opt.value">
+                    {{ opt.label }}
+                  </mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
 
               } @else {
 
-              <input class="w-full border border-gray-200 rounded-lg px-2 py-1
-         hover:border-gray-300 focus:border-blue-400
-         focus:ring-2 focus:ring-blue-100
+              <input class="w-full border border-(--clr-border-200) rounded-lg px-2 py-1
+         hover:border-(--clr-border-300) focus:border-(--clr-primary-400)
+         focus:ring-2 focus:ring-(--clr-primary-100)
          outline-none transition-all cursor-pointer"
                 [type]="field.type === 'number' || field.type === 'int' ? 'number' : 'text'" [value]="row[field.key]"
                 (input)="updateCell(i, field.key, $any($event.target).value)" />
@@ -228,8 +232,8 @@
             <!-- ACTIONS -->
             <td class="p-2">
 
-              <button class="cursor-pointer px-2 py-1 rounded-lg text-red-500
-         hover:bg-red-50 hover:text-red-600
+              <button class="cursor-pointer px-2 py-1 rounded-lg text-(--clr-delete-500)
+         hover:bg-(--clr-delete-50) hover:text-(--clr-delete-600)
          active:scale-95 transition-all duration-150" (click)="removeRow(i)">
                 ✕
               </button>
@@ -246,12 +250,12 @@
       <!-- EMPTY STATE -->
       @if (multiRows().length === 0) {
 
-      <div class="flex flex-col items-center justify-center py-10 text-gray-400">
+      <div class="flex flex-col items-center justify-center py-10 text-(--clr-text-400)">
 
         <span class="text-sm">No hay registros aún</span>
 
-        <button class="mt-3 cursor-pointer px-4 py-2 rounded-xl bg-blue-500 text-white
-         hover:bg-blue-600 active:scale-95 transition-all" (click)="addRow()">
+        <button class="mt-3 cursor-pointer px-4 py-2 rounded-xl bg-(--clr-primary-500) text-(--clr-text-primary-0)
+         hover:bg-(--clr-primary-600) active:scale-95 transition-all" (click)="addRow()">
           Agregar primera fila
         </button>
 
@@ -262,24 +266,24 @@
     </div>
 
     <!-- FOOTER -->
-    <div class="flex items-center justify-between px-5 py-4 border-t border-gray-200">
+    <div class="flex items-center justify-between px-5 py-4 border-t border-(--clr-border-200)">
 
       @if (multiRows().length != 0) {
-      <button class="cursor-pointer px-4 py-2 rounded-xl bg-gray-100 text-gray-700
-         hover:bg-gray-200 active:scale-95 transition-all" (click)="addRow()">
+      <button class="cursor-pointer px-4 py-2 rounded-xl bg-(--clr-border-100) text-(--clr-border-700)
+         hover:bg-(--clr-bg-200) active:scale-95 transition-all" (click)="addRow()">
         + Agregar fila
       </button>
       }
 
       <div class="flex gap-3">
 
-        <button class="cursor-pointer px-5 py-2 rounded-xl border border-gray-300
-                 hover:bg-gray-50 active:scale-95 transition-all" (click)="closeModal('create')">
+        <button class="cursor-pointer px-5 py-2 rounded-xl border border-(--clr-border-300)
+                 hover:bg-(--clr-bg-50) active:scale-95 transition-all" (click)="closeModal('create')">
           Cancelar
         </button>
 
-        <button class="cursor-pointer px-5 py-2 rounded-xl bg-blue-600 text-white
-         hover:bg-blue-700 shadow-sm hover:shadow-md
+        <button class="cursor-pointer px-5 py-2 rounded-xl bg-(--clr-primary-600) text-(--clr-text-primary-0)
+         hover:bg-(--clr-primary-700) shadow-sm hover:shadow-md
          active:scale-95 transition-all" [disabled]="multiRows().length === 0" (click)="submitMultiCreate()">
           Guardar registros
         </button>
@@ -296,25 +300,25 @@
 
 @if (createState().open && createState().mode === 'import') {
 
-<div class="fixed inset-0 z-[140] flex items-center justify-center
-            bg-black/50 backdrop-blur-md p-4">
+<div class="fixed inset-0 z-140 flex items-center justify-center
+            bg-[rgb(from_var(--clr-bg-1000)_r_g_b_/0.5)] backdrop-blur-md p-4">
 
   <!-- PANEL -->
-  <div class="w-[620px] max-w-[95vw]
-              bg-white rounded-3xl
-              border border-gray-200
+  <div class="w-155 max-w-[95vw]
+              bg-(--clr-bg-0) rounded-3xl
+              border border-(--clr-border-200)
               shadow-2xl overflow-hidden">
 
     <!-- HEADER -->
-    <div class="px-6 py-5 border-b border-gray-100
+    <div class="px-6 py-5 border-b border-(--clr-border-100)
                 flex items-center justify-between">
 
       <div>
-        <h2 class="text-lg font-semibold text-gray-800">
+        <h2 class="text-lg font-semibold text-(--clr-text-800)">
           Importar registros CSV
         </h2>
 
-        <p class="text-sm text-gray-500 mt-1">
+        <p class="text-sm text-(--clr-text-500) mt-1">
           Sube un archivo CSV para crear múltiples registros automáticamente
         </p>
       </div>
@@ -330,21 +334,21 @@
 
       <!-- DROP AREA -->
       <label class="relative flex flex-col items-center justify-center
-               border-2 border-dashed border-cyan-300
+               border-2 border-dashed border-(--clr-csv-menu-300)
                rounded-2xl
-               bg-cyan-50/40
-               hover:bg-cyan-50
+               bg-[rgb(from_var(--clr-csv-menu-50)_r_g_b_/0.4)]
+               hover:bg-(--clr-csv-menu-50)
                transition-all duration-200
                cursor-pointer
 
-               min-h-[240px]
+               min-h-60
                text-center px-6 py-6" (dragover)="onDragOver($event)" (drop)="onFileDrop($event)">
 
         <input type="file" accept=".csv" class="hidden" (change)="onFileSelected($event)" />
 
         <!-- ICON -->
         <div class="w-16 h-16 rounded-2xl
-                    bg-cyan-100 text-cyan-700
+                    bg-(--clr-csv-menu-100) text-(--clr-csv-menu-700)
                     flex items-center justify-center mb-4">
 
           <iconify-icon icon="lucide:file-spreadsheet" class="text-3xl"></iconify-icon>
@@ -354,11 +358,11 @@
         <!-- TEXT -->
         <div class="space-y-2">
 
-          <h3 class="text-sm font-semibold text-gray-800">
+          <h3 class="text-sm font-semibold text-(--clr-text-800)">
             Arrastra tu archivo CSV aquí
           </h3>
 
-          <p class="text-xs text-gray-500 leading-relaxed max-w-sm">
+          <p class="text-xs text-(--clr-text-500) leading-relaxed max-w-sm">
             También puedes hacer clic para seleccionar un archivo desde tu dispositivo
           </p>
 
@@ -367,9 +371,9 @@
         <!-- BUTTON -->
         <div class="mt-5 inline-flex items-center gap-2
                  px-4 py-2 rounded-xl
-                 bg-cyan-600 text-white text-sm font-medium
+                 bg-(--clr-csv-menu-600) text-(--clr-text-0) text-sm font-medium
 
-                 hover:bg-cyan-700
+                 hover:bg-(--clr-csv-menu-700)
                  shadow-sm hover:shadow-md
                  transition-all">
 
@@ -388,33 +392,33 @@
 
         <div class="flex items-center justify-between">
 
-          <h3 class="text-sm font-semibold text-gray-700">
+          <h3 class="text-sm font-semibold text-(--clr-text-700)">
             Archivos cargados
           </h3>
 
           <span class="text-xs px-2 py-1 rounded-full
-             bg-cyan-100 text-cyan-700">
+             bg-(--clr-bg-100) text-(--clr-csv-menu-700)">
             {{ uploadedCsvFiles().length }} archivos
           </span>
 
         </div>
 
         <div class="space-y-3
-                 max-h-[150px]
+                 max-h-37.5
                  overflow-y-auto
                  pr-1">
 
           @for (item of uploadedCsvFiles(); track item.file.name; let i = $index) {
 
           <div class="flex items-center justify-between
-           rounded-2xl border border-cyan-200
-           bg-cyan-50 px-4 py-3">
+           rounded-2xl border border-(--clr-csv-menu-200)
+           bg-(--clr-csv-menu-50) px-4 py-3">
 
             <!-- INFO -->
             <div class="flex items-center gap-3 min-w-0">
 
               <div class="w-10 h-10 rounded-xl
-               bg-cyan-100 text-cyan-700
+               bg-(--clr-csv-menu-100) text-(--clr-csv-menu-700)
                flex items-center justify-center
                shrink-0">
 
@@ -424,11 +428,11 @@
 
               <div class="flex flex-col min-w-0">
 
-                <span class="text-sm font-medium text-gray-800 truncate">
+                <span class="text-sm font-medium text-(--clr-text-800) truncate">
                   {{ item.file.name }}
                 </span>
 
-                <span class="text-xs text-cyan-700">
+                <span class="text-xs text-(--clr-csv-menu-700)">
                   @if (item.rowCount > 1) {
                   {{ item.rowCount }} registros ·
                   }
@@ -453,10 +457,10 @@
               <button class="cursor-pointer inline-flex items-center gap-2
                px-3 py-2 rounded-xl
 
-               border border-cyan-200
-               bg-white text-cyan-700 text-sm
+               border border-(--clr-csv-menu-200)
+               bg-(--clr-bg-0) text-(--clr-csv-menu-700) text-sm
 
-               hover:bg-cyan-100
+               hover:bg-(--clr-csv-menu-100)
                active:scale-[0.98]
 
                transition-all" (click)="processCsvFile(item.file)">
@@ -472,11 +476,11 @@
 
                w-10 h-10 rounded-xl
 
-               border border-red-200
-               bg-white text-red-600
+               border border-(--clr-error-200)
+               bg-(--clr-bg-0) text-(--clr-error-600)
 
-               hover:bg-red-50
-               hover:border-red-300
+               hover:bg-(--clr-error-50)
+               hover:border-(--clr-error-300)
 
                active:scale-[0.96]
 
@@ -500,15 +504,15 @@
       <!-- ERROR -->
       @if (csvError()) {
 
-      <div class="rounded-2xl border border-red-200
-         bg-red-50 px-4 py-3">
+      <div class="rounded-2xl border border-(--clr-error-200)
+         bg-(--clr-error-50) px-4 py-3">
 
         <div class="flex items-start gap-3">
 
           <!-- ICON -->
           <div class="w-9 h-9 rounded-xl
 
-             bg-red-100 text-red-600
+             bg-(--clr-error-100) text-(--clr-error-600)
 
              flex items-center justify-center
 
@@ -521,13 +525,13 @@
           <!-- CONTENT -->
           <div class="min-w-0 flex-1">
 
-            <h4 class="text-sm font-semibold text-red-700">
+            <h4 class="text-sm font-semibold text-(--clr-error-700)">
               Error al procesar el CSV
             </h4>
 
-            <p class="text-sm text-red-600
+            <p class="text-sm text-(--clr-error-600)
                leading-relaxed mt-1
-               break-words">
+               wrap-break-word">
               {{ csvError() }}
             </p>
 
@@ -542,15 +546,15 @@
       <!-- WARNING -->
       @if (csvWarning()) {
 
-      <div class="rounded-2xl border border-amber-200
-         bg-amber-50 px-4 py-3">
+      <div class="rounded-2xl border border-(--clr-warning-200)
+         bg-(--clr-warning-50) px-4 py-3">
 
         <div class="flex items-start gap-3">
 
           <!-- ICON -->
           <div class="w-9 h-9 rounded-xl
 
-             bg-amber-100 text-amber-700
+             bg-(--clr-warning-100) text-(--clr-warning-700)
 
              flex items-center justify-center
 
@@ -563,13 +567,13 @@
           <!-- CONTENT -->
           <div class="min-w-0 flex-1">
 
-            <h4 class="text-sm font-semibold text-amber-800">
+            <h4 class="text-sm font-semibold text-(--clr-warning-800)">
               Advertencia
             </h4>
 
-            <p class="text-sm text-amber-700
+            <p class="text-sm text-(--clr-warning-700)
                leading-relaxed mt-1
-               break-words">
+               wrap-break-word">
               {{ csvWarning() }}
             </p>
 
@@ -582,10 +586,10 @@
       }
 
       <!-- HELP -->
-      <div class="rounded-2xl border border-gray-200
-               bg-gray-50 p-4 space-y-3">
+      <div class="rounded-2xl border border-(--clr-border-200)
+               bg-(--clr-bg-50) p-4 space-y-3">
 
-        <div class="flex items-center gap-2 text-gray-700">
+        <div class="flex items-center gap-2 text-(--clr-text-700)">
 
           <iconify-icon icon="lucide:info"></iconify-icon>
 
@@ -593,9 +597,13 @@
             Formato requerido
           </span>
 
+          <p class="text-xs text-gray-400 leading-relaxed">
+              Columnas necesarias: <span class="text-blue-400 font-mono">name, email, password, role</span>
+          </p>
+
         </div>
 
-        <p class="text-xs text-gray-500 leading-relaxed">
+        <p class="text-xs text-(--clr-text-500) leading-relaxed">
 
           El archivo CSV debe contener las columnas necesarias
           para registrar las ventas correctamente.
@@ -606,11 +614,11 @@
         <button class="cursor-pointer inline-flex items-center gap-2
          px-4 py-2 rounded-xl
 
-         border border-gray-300
-         bg-white text-gray-700 text-sm
+         border border-(--clr-border-300)
+         bg-(--clr-bg-0) text-(--clr-text-700) text-sm
 
-         hover:bg-gray-100
-         hover:border-gray-400
+         hover:bg-(--clr-bg-100)
+         hover:border-(--clr-border-400)
 
          active:scale-[0.98]
          transition-all" (click)="downloadCsvTemplate()">
@@ -626,15 +634,15 @@
     </div>
 
     <!-- FOOTER -->
-    <div class="px-6 py-4 border-t border-gray-100
+    <div class="px-6 py-4 border-t border-(--clr-border-100)
              flex justify-end gap-3">
 
       <button class="cursor-pointer px-5 py-2.5 rounded-xl
-               border border-gray-300
-               bg-white text-gray-700
+               border border-(--clr-border-300)
+               bg-(--clr-bg-0) text-(--clr-text-700)
 
-               hover:bg-gray-50
-               hover:border-gray-400
+               hover:bg-(--clr-bg-50)
+               hover:border-(--clr-border-400)
 
                active:scale-[0.98]
                transition-all" (click)="closeModal('create')">
@@ -653,19 +661,20 @@
 
 @if (isUpdateOpen()) {
 
-<div class="fixed inset-0 z-[120] flex items-center justify-center bg-black/60 backdrop-blur-md p-4"
+<div
+  class="fixed inset-0 z-120 flex items-center justify-center bg-[rgb(from_var(--clr-bg-1000)_r_g_b_/0.6)] backdrop-blur-md p-4"
   (click)="closeUpdateModal()">
 
   <!-- MODAL -->
-  <div class="relative z-10 bg-white text-gray-900 p-6 rounded-2xl w-[420px]
-               shadow-2xl border border-gray-200
+  <div class="relative z-10 bg-(--clr-bg-0) text-(--clr-text-900) p-6 rounded-2xl w-105
+               shadow-2xl border border-(--clr-border-200)
                transition-all duration-200 ease-out" [class.opacity-0]="isClosing() || isOpening()"
     [class.scale-95]="isClosing() || isOpening()" [class.translate-y-2]="isClosing() || isOpening()"
     (click)="$event.stopPropagation()">
 
     <!-- HEADER -->
-    <div class="px-5 py-4 border-b border-gray-200 flex items-center justify-between">
-      <h2 class="text-lg font-semibold text-gray-800">
+    <div class="px-5 py-4 border-b border-(--clr-border-200) flex items-center justify-between">
+      <h2 class="text-lg font-semibold text-(--clr-text-800)">
         {{ updateModel?.title }}
       </h2>
 
@@ -681,7 +690,7 @@
 
       <div class="flex flex-col gap-1">
 
-        <label class="text-sm font-medium text-gray-700">
+        <label class="text-sm font-medium text-(--clr-text-700)">
           {{ field.label }}
         </label>
 
@@ -690,38 +699,45 @@
         @case ('guid-text')
         @case ('text') {
         <input
-          class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          class="w-full rounded-lg border border-(--clr-border-300) px-3 py-2 focus:outline-none focus:ring-2 focus:ring-(--clr-primary-500)"
           [value]="formUpdateState[field.key]"
           (input)="setFieldValue(field.key, $any($event.target).value, 'update')" />
         }
 
         @case ('number') {
         <input type="number" step="0.01"
-          class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          class="w-full rounded-lg border border-(--clr-border-300) px-3 py-2 focus:outline-none focus:ring-2 focus:ring-(--clr-primary-500)"
           [value]="formUpdateState[field.key]" (input)="onNumberChange(field.key, $event, 'update')" />
         }
         @case ('int') {
 
         <input type="number" step="1"
-          class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          class="w-full rounded-lg border border-(--clr-border-300) px-3 py-2 focus:outline-none focus:ring-2 focus:ring-(--clr-primary-500)"
           [value]="formUpdateState[field.key]" inputmode="numeric"
           (input)="onNumberChange(field.key, $event, 'update')" />
 
         }
 
         @case ('select') {
-        <select class="w-full bg-gray-50 border border-gray-200 p-2 rounded-lg"
-          (change)="setFieldValue(field.key, $any($event.target).value, 'update')">
-          @for (opt of field.options; track opt.value) {
-          <option [value]="opt.value" [selected]="formUpdateState[field.key] === opt.value">
-            {{ opt.label }}
-          </option>
-          }
-        </select>
+        <mat-form-field class="w-full">
+
+          <mat-select [value]="formUpdateState[field.key] ?? ''"
+            (selectionChange)="setFieldValue(field.key, $any($event).value, 'update')">
+
+            @for (opt of field.options; track opt.value) {
+            <mat-option [value]="opt.value">
+              {{ opt.label }}
+            </mat-option>
+            }
+
+          </mat-select>
+
+        </mat-form-field>
         }
 
         @case ('guid') {
-        <input class="w-full rounded-lg border border-gray-300 px-3 py-2 bg-gray-100 text-gray-600"
+        <input
+          class="w-full rounded-lg border border-(--clr-border-300) px-3 py-2 bg-(--clr-bg-100) text-(--clr-text-600)"
           [value]="formUpdateState[field.key]" disabled />
         }
 
@@ -734,11 +750,11 @@
     </div>
 
     <!-- FOOTER -->
-    <div class="px-5 py-4 border-t border-gray-200 flex justify-end gap-3">
+    <div class="px-5 py-4 border-t border-(--clr-border-200) flex justify-end gap-3">
 
       <button class="cursor-pointer px-5 py-2.5 rounded-xl
-                 border border-gray-300 bg-white text-gray-700
-                 hover:bg-gray-50 hover:border-gray-400 hover:text-gray-900
+                 border border-(--clr-border-300) bg-(--clr-bg-0) text-(--clr-text-700)
+                 hover:bg-(--clr-bg-50) hover:border-(--clr-border-400) hover:text-(--clr-text-900)
                  active:scale-[0.98]
                  shadow-sm hover:shadow-md
                  transition-all duration-150 ease-out disabled:opacity-40 disabled:cursor-not-allowed"
@@ -747,9 +763,9 @@
       </button>
 
       <button class="cursor-pointer px-5 py-2.5 rounded-xl
-                 bg-gradient-to-b from-blue-500 to-blue-600
-                 text-white font-semibold
-                 hover:from-blue-600 hover:to-blue-700
+                 bg-linear-to-b from-(--clr-primary-500) to-(--clr-primary-600)
+                 text-(--clr-text-primary-0) font-semibold
+                 hover:from-(--clr-primary-600) hover:to-(--clr-primary-700)
                  hover:shadow-lg hover:shadow-blue-500/25
                  active:scale-[0.98]
                  disabled:opacity-50 disabled:cursor-not-allowed
@@ -759,7 +775,8 @@
 
         @if (isUpdating()) {
         <span class="flex items-center gap-2">
-          <span class="w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
+          <span
+            class="w-3 h-3 border-2 border-[rgb(from_var(--clr-border-0)_r_g_b_/0.4)] border-t-(--clr-border-0) rounded-full animate-spin"></span>
           Actualizando...
         </span>
         } @else {
@@ -778,9 +795,10 @@
 
 @if (isDiscardWarningOpen()) {
 
-<div class="fixed inset-0 z-[200] flex items-center justify-center bg-black/50">
+<div class="fixed inset-0 z-200 flex items-center justify-center bg-[rgb(from_var(--clr-bg-1000)_r_g_b_/0.5)]">
 
-  <div class="bg-white p-6 rounded-2xl w-[360px] shadow-xl border border-gray-200 transition-all duration-200 ease-out"
+  <div
+    class="bg-(--clr-bg-0) p-6 rounded-2xl w-90 shadow-xl border border-(--clr-border-200) transition-all duration-200 ease-out"
     [class.opacity-0]="isClosingDialog() || isOpeningDialog()" [class.scale-95]="isClosingDialog() || isOpeningDialog()"
     [class.translate-y-2]="isClosingDialog() || isOpeningDialog()" (click)="$event.stopPropagation()">
 
@@ -788,20 +806,20 @@
       Cambios sin guardar
     </h2>
 
-    <p class="text-sm text-gray-600 mb-4">
+    <p class="text-sm text-(--clr-text-600) mb-4">
       Tienes cambios sin guardar. Si continúas, se perderán.
     </p>
 
     <div class="flex justify-end gap-3">
 
-      <button class="cursor-pointer px-4 py-2 rounded-lg bg-gray-100 text-gray-700
-               hover:bg-gray-200 hover:text-gray-900
+      <button class="cursor-pointer px-4 py-2 rounded-lg bg-(--clr-bg-100) text-(--clr-text-700)
+               hover:bg-(--clr-bg-200) hover:text-(--clr-text-900)
                active:scale-95
                transition-all duration-150 ease-out" (click)="closeDiscardWarning()">
         Volver
       </button>
 
-      <button class="cursor-pointer px-4 py-2 rounded-lg bg-red-600 text-white
+      <button class="cursor-pointer px-4 py-2 rounded-lg bg-(--clr-error-600) text-(--clr-text-primary-0)
                hover:bg-red-700 hover:shadow-lg hover:shadow-red-500/20
                active:scale-95
                transition-all duration-150 ease-out" (click)="discardChanges()">
@@ -818,12 +836,13 @@
 
 @if (isDeleteOpen()) {
 
-<div class="fixed inset-0 z-[120] flex items-center justify-center bg-black/60 backdrop-blur-md p-4"
+<div
+  class="fixed inset-0 z-120 flex items-center justify-center bg-[rgb(from_var(--clr-bg-1000)_r_g_b_/0.6)] backdrop-blur-md p-4"
   (click)="closeDeleteModal()">
 
   <!-- MODAL -->
-  <div class="relative z-10 bg-white text-gray-900 p-6 rounded-2xl w-[420px]
-               shadow-2xl border border-gray-200
+  <div class="relative z-10 bg-(--clr-bg-0) text-(--clr-text-900) p-6 rounded-2xl w-105
+               shadow-2xl border border-(--clr-border-200)
                transition-all duration-200 ease-out" [class.opacity-0]="isClosing() || isOpening()"
     [class.scale-95]="isClosing() || isOpening()" [class.translate-y-2]="isClosing() || isOpening()"
     (click)="$event.stopPropagation()">
@@ -832,18 +851,20 @@
       Confirmar eliminación
     </h2>
 
-    <p class="text-sm text-gray-600 mb-5">
+    <p class="text-sm text-(--clr-text-600) mb-5">
       ¿Eliminar venta
       <span class="font-semibold">{{ deleteTarget?.idVenta }}</span>?
     </p>
 
     <div class="flex justify-end gap-2">
 
-      <button class="cursor-pointer px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200" (click)="closeDeleteModal()">
+      <button class="cursor-pointer px-4 py-2 rounded-lg bg-(--clr-bg-100) hover:bg-(--clr-bg-200)"
+        (click)="closeDeleteModal()">
         Cancelar
       </button>
 
-      <button class="cursor-pointer px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
+      <button
+        class="cursor-pointer px-4 py-2 rounded-lg bg-(--clr-error-600) text-(--clr-text-primary-0) hover:bg-(--clr-error-700) disabled:opacity-50"
         [disabled]="isDeleting()" (click)="confirmDelete()">
 
         @if (isDeleting()) {
@@ -864,22 +885,23 @@
 
 @if (isFilterOpen()) {
 
-<div class="fixed inset-0 z-[9999] flex items-center justify-center backdrop-blur-md bg-black/30"
+<div
+  class="fixed inset-0 z-9999 flex items-center justify-center backdrop-blur-md bg-[rgb(from_var(--clr-bg-1000)_r_g_b_/0.3)]"
   (click)="closeFilter()">
 
-  <div class="relative z-10 bg-white rounded-2xl w-[520px] shadow-2xl
-              border border-gray-200 overflow-hidden transition-all duration-200 ease-out"
+  <div class="relative z-10 bg-(--clr-bg-0) rounded-2xl w-130 shadow-2xl
+              border border-(--clr-border-200) overflow-hidden transition-all duration-200 ease-out"
     [class.opacity-0]="isClosing() || isOpening()" [class.scale-95]="isClosing() || isOpening()"
     [class.translate-y-2]="isClosing() || isOpening()" (click)="$event.stopPropagation()">
 
     <!-- HEADER -->
-    <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+    <div class="px-5 py-4 border-b border-(--clr-border-100) flex items-center justify-between">
       <div class="flex items-center gap-2">
-        <iconify-icon icon="lucide:filter" class="text-gray-500"></iconify-icon>
-        <h2 class="text-base font-semibold text-gray-800">Filtros avanzados</h2>
+        <iconify-icon icon="lucide:filter" class="text-(--clr-text-500)"></iconify-icon>
+        <h2 class="text-base font-semibold text-(--clr-text-800)">Filtros avanzados</h2>
       </div>
       <button mat-icon-button (click)="closeFilter()">
-        <mat-icon class="text-gray-400 hover:text-gray-600">close</mat-icon>
+        <mat-icon class="text-[#1976d2]!">close</mat-icon>
       </button>
     </div>
 
@@ -889,7 +911,7 @@
       @for (rule of filterRules; track rule.field) {
 
       <div class="flex flex-col gap-2">
-        <label class="text-sm font-medium text-gray-700">
+        <label class="text-sm font-medium text-(--clr-text-700)">
           {{ rule.filter.label }}
         </label>
 
@@ -902,9 +924,9 @@
           <button class="cursor-pointer px-3 py-1.5 rounded-full text-xs font-medium border transition-all duration-150"
             [ngClass]="filterState.estado.includes($any(opt.value))
                   ? getEstadoClass($any(opt.value)) + ' border-transparent'
-                  : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-gray-400'"
+                  : 'bg-(--clr-bg-50) text-(--clr-text-600) border-(--clr-border-200) hover:border-(--clr-border-400)'"
             (click)="toggleMulti(rule.field, $any(opt.value))">
-            <mat-icon class="!text-[12px] !w-3 !h-3 mr-1 align-middle">
+            <mat-icon class="text-[12px]! w-3! h-3! mr-1 align-middle">
               {{ getEstadoIcon($any(opt.value)) }}
             </mat-icon>
             {{ opt.label }}
@@ -915,9 +937,9 @@
           <button class="cursor-pointer px-3 py-1.5 rounded-full text-xs font-medium border transition-all duration-150"
             [ngClass]="filterState.metodoPago.includes($any(opt.value))
                   ? getMetodoPagoClass($any(opt.value)) + ' border-transparent'
-                  : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-gray-400'"
+                  : 'bg-(--clr-bg-50) text-(--clr-text-600) border-(--clr-border-200) hover:border-(--clr-border-400)'"
             (click)="toggleMulti(rule.field, $any(opt.value))">
-            <mat-icon class="!text-[12px] !w-3 !h-3 mr-1 align-middle">
+            <mat-icon class="text-[12px]! w-3! h-3! mr-1 align-middle">
               {{ getMetodoPagoIcon($any(opt.value)) }}
             </mat-icon>
             {{ opt.label }}
@@ -932,11 +954,11 @@
         @if (rule.filter.filterType === 'number-range') {
         <div class="flex gap-3">
           <input type="number" placeholder="Mínimo"
-            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            class="text-(--clr-text-900) w-full rounded-lg border border-(--clr-border-300) px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-(--clr-primary-500)"
             [value]="asRange(getFilterValue(rule.field)).min ?? ''"
             (input)="setRangeValue(rule.field, 'min', $any($event.target).value)" />
           <input type="number" placeholder="Máximo"
-            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            class="text-(--clr-text-900) w-full rounded-lg border border-(--clr-border-300) px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-(--clr-primary-500)"
             [value]="asRange(getFilterValue(rule.field)).max ?? ''"
             (input)="setRangeValue(rule.field, 'max', $any($event.target).value)" />
         </div>
@@ -946,11 +968,11 @@
         @if (rule.filter.filterType === 'date-range') {
         <div class="flex gap-3">
           <input type="date"
-            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            class="text-(--clr-text-500) w-full rounded-lg border border-(--clr-border-300) px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-(--clr-primary-500)"
             [value]="asDateRange(getFilterValue(rule.field)).from"
             (change)="setRangeValue(rule.field, 'from', $any($event.target).value)" />
           <input type="date"
-            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            class="text-(--clr-text-500) w-full rounded-lg border border-(--clr-border-300) px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-(--clr-primary-500)"
             [value]="asDateRange(getFilterValue(rule.field)).to"
             (change)="setRangeValue(rule.field, 'to', $any($event.target).value)" />
         </div>
@@ -959,7 +981,7 @@
         <!-- EQUALS (text / guid) -->
         @if (rule.filter.filterType === 'equals') {
         <input type="text" [placeholder]="'Buscar por ' + rule.filter.label + '...'"
-          class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          class="text-(--clr-text-900) w-full rounded-lg border border-(--clr-border-300) px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-(--clr-primary-500)"
           [value]="getFilterValue(rule.field)" (input)="setFilterValue(rule.field, $any($event.target).value)" />
         }
 
@@ -968,20 +990,20 @@
     </div>
 
     <!-- FOOTER -->
-    <div class="px-5 py-4 border-t border-gray-100 flex justify-between items-center">
+    <div class="px-5 py-4 border-t border-(--clr-border-100) flex justify-between items-center">
 
       @if (activeFilterCount() > 0) {
-      <span class="text-xs text-blue-600 font-medium">
+      <span class="text-xs text-(--clr-primary-600) font-medium">
         {{ activeFilterCount() }} filtro(s) activo(s)
       </span>
       } @else {
-      <span class="text-xs text-gray-400">Sin filtros aplicados</span>
+      <span class="text-xs text-(--clr-text-600)">Sin filtros aplicados</span>
       }
 
       <div class="flex gap-3">
         <button class="cursor-pointer px-5 py-2.5 rounded-xl
-                 border border-gray-300 bg-white text-gray-700
-                 hover:bg-gray-50 hover:border-gray-400 hover:text-gray-900
+                 border border-(--clr-border-300) bg-(--clr-bg-0) text-(--clr-text-700)
+                 hover:bg-(--clr-bg-50) hover:border-(--clr-border-400) hover:text-(--clr-text-900)
                  active:scale-[0.98]
                  shadow-sm hover:shadow-md
                  transition-all duration-150 ease-out disabled:opacity-40 disabled:cursor-not-allowed"
@@ -990,10 +1012,10 @@
         </button>
 
         <button class="cursor-pointer px-5 py-2.5 rounded-xl
-                 bg-gradient-to-b from-blue-500 to-blue-600
-                 text-white font-semibold
-                 hover:from-blue-600 hover:to-blue-700
-                 hover:shadow-lg hover:shadow-blue-500/25
+                 bg-linear-to-b from-(--clr-primary-500) to-(--clr-primary-600)
+                 text-(--clr-text-primary-0) font-semibold
+                 hover:from-(--clr-primary-600) hover:to-(--clr-primary-700)
+                 hover:shadow-lg hover:[--tw-shadow-color:rgb(var(--clr-primary-500)/0.25)]
                  active:scale-[0.98]
                  disabled:opacity-50 disabled:cursor-not-allowed
                  disabled:shadow-none
@@ -1012,30 +1034,30 @@
 
 @if (isCreateModeOpen() && createMode() === 'menu') {
 
-<div class="fixed inset-0 z-[130] flex items-center justify-center
-            bg-black/40 backdrop-blur-md">
+<div class="fixed inset-0 z-130 flex items-center justify-center
+            bg-[rgb(from_var(--clr-bg-400)_r_g_b_/0.4)] backdrop-blur-md">
 
   <!-- PANEL -->
-  <div class="w-[540px] max-w-[92vw]
-              bg-white/95 backdrop-blur-xl
-              border border-gray-200/70
+  <div class="w-135 max-w-[92vw]
+              bg-[rgb(from_var(--clr-bg-0)_r_g_b_/0.95)] backdrop-blur-xl
+              border border-[rgb(from_var(--clr-border-200)_r_g_b_/0.7)]
               rounded-2xl shadow-2xl
               p-6 space-y-5
               animate-in fade-in zoom-in-95">
 
     <!-- HEADER -->
     <div class="space-y-1">
-      <div class="px-5 py-4 border-b border-gray-200 flex items-center justify-between">
-        <h2 class="text-lg font-semibold text-gray-800">
+      <div class="px-5 py-4 border-b border-(--clr-border-200) flex items-center justify-between">
+        <h2 class="text-lg font-semibold text-(--clr-text-800)">
           Nuevo Registro
         </h2>
 
-        <button mat-icon-button (click)="closeModal('menu')">
+        <button class="text-(--clr-primary-500)!" mat-icon-button (click)="closeModal('menu')">
           <mat-icon>close</mat-icon>
         </button>
       </div>
 
-      <p class="text-sm text-gray-500">
+      <p class="text-sm text-(--clr-text-500)">
         Elige cómo deseas crear el registro
       </p>
     </div>
@@ -1045,96 +1067,103 @@
 
       <!-- UNO SOLO -->
       <button class="cursor-pointer group relative flex items-center gap-4 p-4 rounded-xl
-               border border-gray-200 bg-white/60 backdrop-blur-sm
+               border border-(--clr-single-option-border) bg-[rgb(from_var(--clr-single-option-bg)_r_g_b_/0.1)] backdrop-blur-sm
                transition-all duration-200 ease-out
 
-               hover:bg-white hover:border-gray-300
-               hover:shadow-lg hover:shadow-blue-100
+               hover:bg-(--clr-single-option-bg-hover) hover:border-(--clr-single-option-border-hover)
+               hover:shadow-lg hover:[--tw-shadow-color:var(--clr-single-option-shadow)]
                hover:-translate-y-0.5
 
                active:scale-[0.98]
 
-               focus:outline-none focus:ring-2 focus:ring-blue-400/30" (click)="openCreate('single')">
+               focus:outline-none focus:ring-2 focus:ring-[rgb(from_var(--clr-single-option-focus)_r_g_b_/0.3)]"
+        (click)="openCreate('single')">
 
         <div class="flex items-center justify-center w-10 h-10 rounded-lg
-                    bg-blue-50 text-blue-600
-                    group-hover:bg-blue-100 transition">
+                    bg-(--clr-single-option-icon-bg) text-(--clr-single-option-icon)
+                    group-hover:bg-(--clr-single-option-icon-bg-hover) transition">
           <iconify-icon icon="lucide:file-plus" class="text-xl"></iconify-icon>
         </div>
 
         <div class="text-left">
-          <p class="text-sm font-semibold text-gray-800">
+          <p class="text-sm font-semibold text-(--clr-text-800)">
             Un solo registro
           </p>
-          <p class="text-xs text-gray-500">
+          <p class="text-xs text-(--clr-text-500)">
             Formulario estándar con validación completa
           </p>
         </div>
 
-        <div class="ml-auto text-gray-300 group-hover:text-blue-500 transition">
+        <div class="ml-auto text-(--clr-text-300) group-hover:text-(--clr-single-option-chevron) transition">
           <iconify-icon icon="lucide:chevron-right"></iconify-icon>
         </div>
 
         <!-- glow lateral -->
-        <div class="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100
-                    bg-gradient-to-r from-blue-50/40 to-transparent transition"></div>
+        <div
+          class="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100
+                    bg-linear-to-r from-[rgb(from_var(--clr-single-option-glow)_r_g_b_/0.4)] to-transparent transition">
+        </div>
 
       </button>
 
       <!-- MULTIPLES -->
       <button class="cursor-pointer group relative flex items-center gap-4 p-4 rounded-xl
-               border border-gray-200 bg-white/60 backdrop-blur-sm
+               border border-(--clr-multiple-option-border) bg-[rgb(from_var(--clr-multiple-option-bg)_r_g_b_/0.1)] backdrop-blur-sm
                transition-all duration-200 ease-out
 
-               hover:bg-white hover:border-gray-300
-               hover:shadow-lg hover:shadow-purple-100
+               hover:bg-(--clr-mutiple-option-bg-hover) hover:border-(--clr-multiple-option-border-hover)
+               hover:shadow-lg hover:[--tw-shadow-color:var(--clr-multiple-option-shadow)]
                hover:-translate-y-0.5
 
                active:scale-[0.98]
 
-               focus:outline-none focus:ring-2 focus:ring-purple-400/30" (click)="openCreate('multi')">
+               focus:outline-none focus:ring-2 focus:ring-[rgb(from_var(--clr-multiple-option-focus)_r_g_b_/0.3)]"
+        (click)="openCreate('multi')">
 
         <div class="flex items-center justify-center w-10 h-10 rounded-lg
-                    bg-purple-50 text-purple-600
-                    group-hover:bg-purple-100 transition">
+                    bg-(--clr-multiple-option-icon-bg) text-(--clr-multiple-option-icon)
+                    group-hover:bg-(--clr-multiple-option-icon-bg-hover) transition">
           <iconify-icon icon="lucide:layers" class="text-xl"></iconify-icon>
         </div>
 
         <div class="text-left">
-          <p class="text-sm font-semibold text-gray-800">
+          <p class="text-sm font-semibold text-(--clr-text-800)">
             Múltiples registros
           </p>
-          <p class="text-xs text-gray-500">
+          <p class="text-xs text-(--clr-text-500)">
             Tabla editable con validación por fila
           </p>
         </div>
 
-        <div class="ml-auto text-gray-300 group-hover:text-purple-500 transition">
+        <div class="ml-auto text-(--clr-text-300) group-hover:text-(--clr-multiple-option-chevron) transition">
           <iconify-icon icon="lucide:chevron-right"></iconify-icon>
         </div>
 
-        <div class="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100
-                    bg-gradient-to-r from-purple-50/40 to-transparent transition"></div>
+        <div
+          class="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100
+                    bg-linear-to-r from-[rgb(from_var(--clr-multiple-option-glow)_r_g_b_/0.4)] to-transparent transition">
+        </div>
 
       </button>
 
-      <!-- EXCEL -->
+      <!-- CSV -->
       <button class="cursor-pointer group relative flex items-center gap-4 p-4 rounded-xl
-         border border-cyan-200 bg-cyan-50/40 backdrop-blur-sm
+         border border-(--clr-csv-option-border) bg-[rgb(from_var(--clr-csv-option-bg)_r_g_b_/0.1)] backdrop-blur-sm
          transition-all duration-200 ease-out
 
-         hover:bg-white hover:border-cyan-300
-         hover:shadow-lg hover:shadow-cyan-100
+         hover:bg-(--clr-csv-option-bg-hover) hover:border-(--clr-csv-option-border-hover)
+         hover:shadow-lg hover:[--tw-shadow-color:var(--clr-csv-option-shadow)]
          hover:-translate-y-0.5
 
          active:scale-[0.98]
 
-         focus:outline-none focus:ring-2 focus:ring-cyan-400/30" (click)="openCreate('import')">
+         focus:outline-none focus:ring-2 focus:ring-[rgb(from_var(--clr-csv-option-focus)_r_g_b_/0.3)]"
+        (click)="openCreate('import')">
 
         <!-- ICON -->
         <div class="flex items-center justify-center w-10 h-10 rounded-lg
-           bg-cyan-100 text-cyan-700
-           group-hover:bg-cyan-200 transition">
+           bg-(--clr-csv-option-icon-bg) text-(--clr-csv-option-icon)
+           group-hover:bg-(--clr-csv-option-icon-bg-hover) transition">
 
           <iconify-icon icon="lucide:file-spreadsheet" class="text-xl"></iconify-icon>
 
@@ -1143,19 +1172,19 @@
         <!-- TEXT -->
         <div class="text-left">
 
-          <p class="text-sm font-semibold text-gray-800">
+          <p class="text-sm font-semibold text-(--clr-text-800)">
             Importar CSV
           </p>
 
-          <p class="text-xs text-gray-500">
+          <p class="text-xs text-(--clr-text-500)">
             Cargar registros masivos desde un archivo CSV
           </p>
 
         </div>
 
         <!-- RIGHT ICON -->
-        <div class="ml-auto text-gray-300
-           group-hover:text-cyan-500 transition">
+        <div class="ml-auto text-(--clr-text-300)
+           group-hover:text-(--clr-csv-option-chevron) transition">
 
           <iconify-icon icon="lucide:chevron-right"></iconify-icon>
 
@@ -1164,7 +1193,7 @@
         <!-- HOVER GLOW -->
         <div class="absolute inset-0 rounded-xl opacity-0
            group-hover:opacity-100
-           bg-gradient-to-r from-cyan-100/40 to-transparent
+           bg-linear-to-r from-[rgb(from_var(--clr-csv-option-glow)_r_g_b_/0.4)] to-transparent
            transition"></div>
 
       </button>
@@ -1177,25 +1206,26 @@
 
 }
 
-<section class="bg-white border border-gray-200 rounded-2xl overflow-hidden flex flex-col h-[500px] w-full min-w-0">
+<section
+  class="bg-(--clr-bg-0) border border-(--clr-text-200) rounded-2xl overflow-hidden flex flex-col h-125 w-full min-w-0">
 
   <!-- TOP ACTION BAR -->
-  <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between gap-4 shrink-0">
+  <div class="px-4 py-3 border-b border-(--clr-text-100) flex items-center justify-between gap-4 shrink-0">
 
     <!-- LEFT -->
     <div class="flex items-center gap-4">
 
       <div class="flex flex-col">
-        <span class="text-sm font-semibold tracking-wide text-gray-800">
+        <span class="text-sm font-semibold tracking-wide text-(--clr-text-800)">
           Ventas
         </span>
 
-        <span class="text-[11px] text-gray-400">
+        <span class="text-[11px] text-(--clr-text-400)">
           Monitoreo de registros
         </span>
       </div>
 
-      <div class="px-2 py-1 rounded-lg bg-gray-100 text-gray-600 text-xs font-medium">
+      <div class="px-2 py-1 rounded-lg bg-(--clr-bg-300) text-(--clr-text-600) text-xs font-medium">
         {{ dataSource.data.length }} registros
       </div>
 
@@ -1208,9 +1238,9 @@
       <div class="flex items-center gap-2
             px-3 h-10
             rounded-xl
-            border border-gray-200
-            bg-gray-50
-            text-gray-500">
+            border border-(--clr-border-200)
+            bg-(--clr-bg-50)
+            text-(--clr-text-500)">
 
         <iconify-icon icon="lucide:search"></iconify-icon>
 
@@ -1221,7 +1251,7 @@
       <!-- REFRESH -->
       <button class="toolbar-btn" (click)="loadData()">
 
-        <iconify-icon icon="lucide:refresh-cw"></iconify-icon>
+        <iconify-icon icon="lucide:refresh-cw" [class.icon-spin]="!isLoaded() && !isApiError()"></iconify-icon>
 
       </button>
 
@@ -1230,8 +1260,8 @@
         <iconify-icon icon="lucide:filter"></iconify-icon>
 
         @if (activeFilterCount() > 0) {
-        <span class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-blue-500
-                            text-white text-[10px] font-bold flex items-center justify-center">
+        <span class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-(--clr-primary-500)
+                      text-(--clr-text-primary-0) text-[10px] font-bold flex items-center justify-center">
           {{ activeFilterCount() }}
         </span>
         }
@@ -1243,27 +1273,30 @@
         inline-flex items-center gap-2
 
         rounded-xl
-        border border-gray-200
+        border border-(--clr-border-200)
 
-        bg-white
+        bg-(--clr-bg-100)
 
         px-3.5 py-2
 
-        text-sm font-medium text-gray-700
+        text-sm font-medium text-(--clr-text-700)
 
         transition-all duration-200
 
-        hover:border-gray-300
-        hover:bg-gray-50
-        hover:text-gray-900
+        hover:border-(--clr-border-300)
+        hover:bg-(--clr-bg-200)
 
         active:scale-[0.98]
 
         shadow-sm hover:shadow
     ">
-        <mat-icon class="!w-[18px] !h-[18px] !text-[18px] text-gray-500">
-          {{ hideGuidColumns() ? 'visibility_off' : 'visibility' }}
-        </mat-icon>
+        @if (hideGuidColumns()) {
+        <iconify-icon class="w-4.5 h-4.5 text-[18px] text-(--clr-text-500)" icon="mdi:eye-off">
+        </iconify-icon>
+        } @else {
+        <iconify-icon class="w-4.5 h-4.5 text-[18px] text-(--clr-text-500)" icon="mdi:eye">
+        </iconify-icon>
+        }
 
         <span>
           {{ hideGuidColumns() ? 'Mostrar GUIDs' : 'Ocultar GUIDs' }}
@@ -1271,9 +1304,33 @@
       </button>
 
       <!-- CREATE -->
-      <button class="create-btn" (click)="openCreateMenu()">
+      <button class="
+      h-10
+        px-4
+        flex items-center gap-2
+
+        rounded-xl
+
+        bg-linear-to-b
+        from-(--clr-primary-500)
+        to-(--clr-primary-600)
+
+        text-(--clr-text-primary-0)
+        text-[13px]
+        font-semibold
+        tracking-[0.02em]
+
+        cursor-pointer
+
+        hover:-translate-y-px
+        hover:shadow-[0_14px_35px_color-mix(in_srgb,var(--clr-primary-500)_40%,transparent)]
+
+        active:scale-[0.97]
+
+        transition-all
+        duration-150" (click)="openCreateMenu()">
         <iconify-icon icon="lucide:plus"></iconify-icon>
-        <span>Nuevo registro</span>
+        <span class="text-(--clr-text-primary-0)">Nuevo registro</span>
       </button>
 
     </div>
@@ -1283,23 +1340,25 @@
   <!-- LOADING -->
   @if (!isLoaded() && !isApiError()) {
 
-  <div class="flex-1 flex flex-col items-center justify-center gap-5 bg-gradient-to-b from-white to-gray-50/80">
+  <div
+    class="flex-1 flex flex-col items-center justify-center gap-5 bg-linear-to-b from-(--clr-bg-0) to-[rgb(from_var(--clr-bg-50)_r_g_b_/0.8)]">
 
     <!-- LOADER -->
     <div class="relative">
 
       <!-- OUTER -->
       <div
-        class="w-16 h-16 rounded-2xl border border-blue-100 bg-white/80 backdrop-blur-sm shadow-sm flex items-center justify-center">
+        class="w-16 h-16 rounded-2xl border border-(--clr-primary-100) bg-[rgb(from_var(--clr-bg-0)_r_g_b_/0.8)] backdrop-blur-sm shadow-sm flex items-center justify-center">
 
         <!-- SPINNER -->
-        <div class="w-8 h-8 border-[2.5px] border-blue-200 border-t-blue-600 rounded-full animate-spin">
+        <div
+          class="w-8 h-8 border-[2.5px] border-(--clr-primary-200) border-t-(--clr-primary-600) rounded-full animate-spin">
         </div>
 
       </div>
 
       <!-- GLOW -->
-      <div class="absolute inset-0 rounded-2xl bg-blue-500/10 blur-xl animate-pulse">
+      <div class="absolute inset-0 rounded-2xl bg-[rgb(var(--clr-primary-500)_r_g_b_/0.1)] blur-xl animate-pulse">
       </div>
 
     </div>
@@ -1307,11 +1366,11 @@
     <!-- TEXT -->
     <div class="flex flex-col items-center gap-1">
 
-      <span class="text-sm font-semibold tracking-wide text-gray-700 animate-pulse">
+      <span class="text-sm font-semibold tracking-wide text-(--clr-text-700) animate-pulse">
         Cargando datos
       </span>
 
-      <span class="text-[11px] tracking-[0.18em] uppercase text-gray-400">
+      <span class="text-[11px] tracking-[0.18em] uppercase text-(--clr-text-400)">
         sincronizando registros
       </span>
 
@@ -1329,10 +1388,10 @@
 
       <!-- ICON -->
       <div class="w-16 h-16 rounded-2xl
-                  border border-red-200
-                  bg-red-50
+                  border border-(--clr-error-200)
+                  bg-(--clr-error-50)
                   flex items-center justify-center
-                  text-red-400">
+                  text-(--clr-error-400)">
 
         <iconify-icon icon="lucide:cloud-off" width="30"></iconify-icon>
 
@@ -1341,18 +1400,49 @@
       <!-- TEXT -->
       <div class="flex flex-col gap-1">
 
-        <span class="text-sm font-semibold text-gray-700">
+        <span class="text-sm font-semibold text-(--clr-text-700)">
           No se pueden obtener registros
         </span>
 
-        <span class="text-[12px] text-gray-400 leading-relaxed">
+        <span class="text-[12px] text-(--clr-text-400) leading-relaxed">
           Ocurrió un problema al conectar con el servidor. Intenta nuevamente.
         </span>
 
       </div>
 
       <!-- ACTION -->
-      <button class="refresh-empty-btn cursor-pointer" (click)="loadData()">
+      <button class="inline-flex
+        items-center
+        gap-2.5
+
+        h-10
+        px-4
+
+        rounded-[14px]
+
+        border
+        border-(--clr-border-600)
+
+        bg-linear-to-b
+        from-(--clr-bg-50)
+        to-(--clr-bg-100)
+
+        text-(--clr-primary-600)
+
+        text-[13px]
+        font-semibold
+
+        cursor-pointer
+
+        transition-all
+        duration-200
+
+        hover:-translate-y-px
+        hover:shadow-[0_14px_35px_color-mix(in_srgb,var(--clr-primary-500)_25%,transparent)]
+        hover:bg-linear-to-b
+        hover:from-(--clr-bg-50)
+        hover:to-(--clr-primary-100)
+        " (click)="loadData()">
 
         <iconify-icon icon="lucide:refresh-cw"></iconify-icon>
 
@@ -1374,7 +1464,7 @@
     <!-- SCROLL INTERNO -->
     <div class="w-full h-full overflow-auto">
 
-      <table mat-table [dataSource]="dataSource" class="premium-table w-full table-auto border-collapse">
+      <table mat-table [dataSource]="dataSource" class="w-full table-auto border-collapse">
 
         @for (col of displayedColumns; track col) {
 
@@ -1392,7 +1482,7 @@
 
             @if (col === 'rowIndex') {
 
-            <span class="text-xs font-medium text-gray-400">
+            <span class="text-xs font-medium text-(--clr-text-500)">
               {{ i + 1 }}
             </span>
             }
@@ -1424,7 +1514,7 @@
 
             <span class="status-chip flex items-center gap-2" [ngClass]="getEstadoClass(e[col])">
 
-              <mat-icon class="!text-[16px] !w-4 !h-4">
+              <mat-icon class="text-[16px]! w-4! h-4!">
                 {{ getEstadoIcon(e[col]) }}
               </mat-icon>
 
@@ -1436,12 +1526,12 @@
             @else if (col === "metodoPago") {
 
             <span class="
-    inline-flex items-center gap-2 rounded-full
-    px-3 py-1 text-xs font-medium
-    {{ getMetodoPagoClass(e[col]) }}
+              inline-flex items-center gap-2 rounded-full
+              px-3 py-1 text-xs font-medium
+              {{ getMetodoPagoClass(e[col]) }}
   ">
 
-              <mat-icon class="!text-[16px] !w-4 !h-4">
+              <mat-icon class="text-[16px]! w-4! h-4!">
                 {{ getMetodoPagoIcon(e[col]) }}
               </mat-icon>
 
@@ -1539,10 +1629,10 @@
 
       <!-- ICON -->
       <div class="w-16 h-16 rounded-2xl
-                    border border-gray-200
-                    bg-gray-50
+                    border border-(--clr-border-200)
+                    bg-(--clr-bg-50)
                     flex items-center justify-center
-                    text-gray-400">
+                    text-(--clr-text-400)">
 
         <iconify-icon icon="lucide:database-search" width="30">
         </iconify-icon>
@@ -1552,11 +1642,11 @@
       <!-- TEXT -->
       <div class="flex flex-col gap-1">
 
-        <span class="text-sm font-semibold text-gray-700">
+        <span class="text-sm font-semibold text-(--clr-text-700)">
           No hay registros disponibles
         </span>
 
-        <span class="text-[12px] text-gray-400 leading-relaxed">
+        <span class="text-[12px] text-(--clr-text-400) leading-relaxed">
           No se encontraron ventas para mostrar en este momento.
         </span>
 

@@ -1,61 +1,95 @@
-export function getEstadoClass(estado: string): string {
+export type EstadoVenta =
+    | 'PENDIENTE'
+    | 'PROCESANDO'
+    | 'PAGADA'
+    | 'COMPLETADA'
+    | 'CANCELADA'
+    | 'ANULADA'
+    | 'REEMBOLSADA'
+    | 'DEVUELTA';
+
+export type EstadoModo =
+    | 'neutral'
+    | 'success'
+    | 'warning'
+    | 'danger'
+    | 'info'
+    | 'muted';
+
+/* =========================================================
+   MODO CENTRAL
+========================================================= */
+
+export function getEstadoModo(estado: string): EstadoModo {
 
     switch (estado) {
 
-        case 'PENDIENTE':
-            return `
-                bg-amber-50
-                text-amber-700
-                ring-1 ring-amber-200/60
-            `;
-
         case 'PAGADA':
+        case 'COMPLETADA':
+            return 'success';
+
+        case 'PENDIENTE':
+            return 'warning';
+
+        case 'PROCESANDO':
+            return 'info';
+
+        case 'CANCELADA':
+        case 'ANULADA':
+            return 'danger';
+
+        case 'REEMBOLSADA':
+        case 'DEVUELTA':
+            return 'muted';
+
+        default:
+            return 'neutral';
+    }
+}
+
+/* =========================================================
+   CLASES UI (ESTADO)
+========================================================= */
+
+export function getEstadoClass(estado: string): string {
+
+    const modo = getEstadoModo(estado);
+
+    switch (modo) {
+
+        case 'success':
             return `
                 bg-emerald-50
                 text-emerald-700
                 ring-1 ring-emerald-200/60
             `;
 
-        case 'PROCESANDO':
+        case 'warning':
+            return `
+                bg-amber-50
+                text-amber-700
+                ring-1 ring-amber-200/60
+            `;
+
+        case 'info':
             return `
                 bg-blue-50
                 text-blue-700
                 ring-1 ring-blue-200/60
             `;
 
-        case 'COMPLETADA':
-            return `
-                bg-teal-50
-                text-teal-700
-                ring-1 ring-teal-200/60
-            `;
-
-        case 'CANCELADA':
+        case 'danger':
             return `
                 bg-rose-50
                 text-rose-700
                 ring-1 ring-rose-200/60
             `;
 
-        case 'ANULADA':
+        case 'muted':
             return `
                 bg-zinc-100
                 text-zinc-600
                 ring-1 ring-zinc-200
-            `;
-
-        case 'REEMBOLSADA':
-            return `
-                bg-violet-50
-                text-violet-700
-                ring-1 ring-violet-200/60
-            `;
-
-        case 'DEVUELTA':
-            return `
-                bg-orange-50
-                text-orange-700
-                ring-1 ring-orange-200/60
             `;
 
         default:
@@ -66,6 +100,40 @@ export function getEstadoClass(estado: string): string {
             `;
     }
 }
+
+/* =========================================================
+   ICONOS (ESTADO)
+========================================================= */
+
+export function getEstadoIcon(estado: string): string {
+
+    const modo = getEstadoModo(estado);
+
+    switch (modo) {
+
+        case 'success':
+            return 'check_circle';
+
+        case 'warning':
+            return 'schedule';
+
+        case 'info':
+            return 'autorenew';
+
+        case 'danger':
+            return 'cancel';
+
+        case 'muted':
+            return 'undo';
+
+        default:
+            return 'help';
+    }
+}
+
+/* =========================================================
+   MÉTODO DE PAGO - CLASES
+========================================================= */
 
 export function getMetodoPagoClass(metodo: string): string {
 
@@ -122,6 +190,10 @@ export function getMetodoPagoClass(metodo: string): string {
     }
 }
 
+/* =========================================================
+   MÉTODO DE PAGO - ICONOS
+========================================================= */
+
 export function getMetodoPagoIcon(metodo: string): string {
 
     switch (metodo) {
@@ -148,6 +220,10 @@ export function getMetodoPagoIcon(metodo: string): string {
             return 'wallet';
     }
 }
+
+/* =========================================================
+   MÉTODO DE PAGO - LABELS
+========================================================= */
 
 export function getMetodoPagoLabel(metodo: string): string {
 
@@ -176,103 +252,32 @@ export function getMetodoPagoLabel(metodo: string): string {
     }
 }
 
-export function getEstadoIcon(estado: string): string {
-    switch (estado) {
-
-        case 'PENDIENTE':
-            return 'schedule';
-
-        case 'PROCESANDO':
-            return 'autorenew';
-
-        case 'PAGADA':
-            return 'payments';
-
-        case 'COMPLETADA':
-            return 'check_circle';
-
-        case 'CANCELADA':
-            return 'cancel';
-
-        case 'ANULADA':
-            return 'block';
-
-        case 'REEMBOLSADA':
-            return 'keyboard_return';
-
-        case 'DEVUELTA':
-            return 'undo';
-
-        default:
-            return 'help';
-    }
-}
+/* =========================================================
+   MONTO META (VISUAL)
+========================================================= */
 
 export function getMontoMeta(estado: string): { sign: string; class: string; prefix: string } {
 
-    switch (estado) {
+    const modo = getEstadoModo(estado);
 
-        case 'PAGADA':
-            return {
-                sign: '+',
-                prefix: '',
-                class: 'text-emerald-600'
-            };
+    switch (modo) {
 
-        case 'COMPLETADA':
-            return {
-                sign: '+',
-                prefix: '',
-                class: 'text-teal-600'
-            };
+        case 'success':
+            return { sign: '+', prefix: '', class: 'text-emerald-600' };
 
-        case 'PENDIENTE':
-            return {
-                sign: '~',
-                prefix: '',
-                class: 'text-amber-500'
-            };
+        case 'warning':
+            return { sign: '~', prefix: '', class: 'text-amber-500' };
 
-        case 'PROCESANDO':
-            return {
-                sign: '~',
-                prefix: '',
-                class: 'text-blue-600'
-            };
+        case 'info':
+            return { sign: '~', prefix: '', class: 'text-blue-600' };
 
-        case 'CANCELADA':
-            return {
-                sign: '-',
-                prefix: '',
-                class: 'text-rose-600'
-            };
+        case 'danger':
+            return { sign: '-', prefix: '', class: 'text-rose-600' };
 
-        case 'ANULADA':
-            return {
-                sign: '×',
-                prefix: '',
-                class: 'text-zinc-500'
-            };
-
-        case 'REEMBOLSADA':
-            return {
-                sign: '↺',
-                prefix: '',
-                class: 'text-violet-600'
-            };
-
-        case 'DEVUELTA':
-            return {
-                sign: '↩',
-                prefix: '',
-                class: 'text-orange-600'
-            };
+        case 'muted':
+            return { sign: '×', prefix: '', class: 'text-zinc-500' };
 
         default:
-            return {
-                sign: '?',
-                prefix: '',
-                class: 'text-slate-500'
-            };
+            return { sign: '?', prefix: '', class: 'text-slate-500' };
     }
 }

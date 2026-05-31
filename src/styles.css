@@ -1,7 +1,10 @@
 /* You can add global styles to this file, and also import other style files */
-
+@import './palette.css';
 @import "tailwindcss";
 
+/* =========================
+   SCROLLBAR BASE (LIGHT)
+   ========================= */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
@@ -14,8 +17,39 @@
 ::-webkit-scrollbar-thumb {
   background: #3b82f6;
   border-radius: 999px;
+  transition: background 160ms ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: #2563eb;
+}
+
+/* =========================
+   SCROLLBAR DARK MODE
+   ========================= */
+.dark-theme ::-webkit-scrollbar-track {
+  background: #111827; /* gris oscuro elegante */
+}
+
+::-webkit-scrollbar-corner {
+  background: #111827;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(45%)
+          sepia(100%)
+          saturate(2000%)
+          hue-rotate(190deg)
+          brightness(100%)
+          contrast(95%);
+  opacity: 0.9;
+  cursor: pointer;
+}
+
+input[type="date"] {
+  color-scheme: light;
+}
+
+.dark-theme input[type="date"] {
+  color-scheme: dark;
 }

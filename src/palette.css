@@ -1,0 +1,349 @@
+:root {
+
+   /* BACKGROUNDS */
+   --clr-bg-0: #ffffff;
+   --clr-bg-50: #fcfcfd;
+   --clr-bg-100: #f8fafc;
+   --clr-bg-200: #f3f4f6;
+   --clr-bg-300: #e5e7eb;
+   --clr-bg-400: #d1d5db;
+   --clr-bg-500: #9ca3af;
+   --clr-bg-600: #6b7280;
+   --clr-bg-700: #4b5563;
+   --clr-bg-800: #374151;
+   --clr-bg-900: #111827;
+   --clr-bg-1000: #000000;
+
+   /* TEXT */
+   --clr-text-0: #ffffff;
+   --clr-text-50: #f9fafb;
+   --clr-text-100: #f3f4f6;
+   --clr-text-200: #e5e7eb;
+   --clr-text-300: #d1d5db;
+   --clr-text-400: #9ca3af;
+   --clr-text-500: #6b7280;
+   --clr-text-600: #4b5563;
+   --clr-text-700: #374151;
+   --clr-text-800: #1f2937;
+   --clr-text-900: #111827;
+
+   --clr-text-primary-0: #ffffff;
+
+   /* BORDERS */
+   --clr-border-0: #ffffff;
+   --clr-border-50: #f9fafb;
+   --clr-border-100: #f3f4f6;
+   --clr-border-200: #e5e7eb;
+   --clr-border-300: #d1d5db;
+   --clr-border-400: #9ca3af;
+   --clr-border-500: #6b7280;
+
+   /* PRIMARY */
+   --clr-primary-50: #eff6ff;
+   --clr-primary-100: #dbeafe;
+   --clr-primary-200: #bfdbfe;
+   --clr-primary-300: #93c5fd;
+   --clr-primary-400: #60a5fa;
+   --clr-primary-500: #3b82f6;
+   --clr-primary-600: #2563eb;
+   --clr-primary-700: #1d4ed8;
+   --clr-primary-800: #1e40af;
+   --clr-primary-900: #1e3a8a;
+
+   /* SINGLE */
+   --clr-single-option-bg: rgba(255, 255, 255, 0.6);
+   --clr-single-option-bg-hover: #ffffff;
+
+   --clr-single-option-border: #e5e7eb;
+   --clr-single-option-border-hover: var(--clr-primary-200);
+
+   --clr-single-option-text-title: #0f172a;
+   --clr-single-option-text-sub: #64748b;
+
+   --clr-single-option-icon-bg: var(--clr-primary-50);
+   --clr-single-option-icon-bg-hover: var(--clr-primary-100);
+
+   --clr-single-option-icon: var(--clr-primary-600);
+
+   --clr-single-option-shadow: var(--clr-primary-200);
+
+   --clr-single-option-chevron: var(--clr-primary-500);
+
+   --clr-single-option-glow: var(--clr-primary-50);
+
+   --clr-single-option-focus: var(--clr-primary-500);
+
+   /* MULTIPLE */
+   --clr-multiple-option-bg: rgba(255, 255, 255, 0.55);
+   --clr-multiple-option-bg-hover: #ffffff;
+
+   --clr-multiple-option-border: #e2e8f0;
+   --clr-multiple-option-border-hover: var(--clr-multiple-menu-200);
+
+   --clr-multiple-option-text-title: #0f172a;
+   --clr-multiple-option-text-sub: #64748b;
+
+   --clr-multiple-option-icon-bg: var(--clr-multiple-menu-100);
+   --clr-multiple-option-icon-bg-hover: var(--clr-multiple-menu-200);
+   --clr-multiple-option-icon: var(--clr-multiple-menu-600);
+
+   --clr-multiple-option-chevron: var(--clr-multiple-menu-500);
+
+   --clr-multiple-option-glow: var(--clr-multiple-menu-50);
+
+   --clr-multiple-option-focus: var(--clr-multiple-menu-400-30);
+
+   --clr-multiple-option-shadow: var(--clr-multiple-menu-200);
+
+   /* CSV */
+   --clr-csv-option-bg: rgba(255, 255, 255, 0.55);
+   --clr-csv-option-bg-hover: #ffffff;
+
+   --clr-csv-option-border: #e2e8f0;
+   --clr-csv-option-border-hover: var(--clr-csv-menu-200);
+
+   --clr-csv-option-text-title: #0f172a;
+   --clr-csv-option-text-sub: #64748b;
+
+   --clr-csv-option-icon-bg: var(--clr-csv-menu-100);
+   --clr-csv-option-icon-bg-hover: var(--clr-csv-menu-200);
+
+   --clr-csv-option-icon: var(--clr-csv-menu-600);
+
+   --clr-csv-option-chevron: var(--clr-csv-menu-500);
+
+   --clr-csv-option-glow: var(--clr-csv-menu-50);
+
+   --clr-csv-option-focus: var(--clr-csv-menu-400-30);
+
+   --clr-csv-option-shadow: var(--clr-csv-menu-200);
+
+   /* SUCCESS */
+   --clr-success-500: #22c55e;
+   --clr-success-600: #16a34a;
+
+   /* WARNING */
+   --clr-warning-50: #fffbeb;
+   --clr-warning-100: #fef3c7;
+   --clr-warning-200: #fde68a;
+   --clr-warning-700: #b45309;
+   --clr-warning-800: #92400e;
+
+   /* ERROR */
+   --clr-error-50: #fef2f2;
+   --clr-error-100: #fee2e2;
+   --clr-error-200: #fecaca;
+   --clr-error-300: #fca5a5;
+   --clr-error-400: #f87171;
+   --clr-error-500: #ef4444;
+   --clr-error-600: #dc2626;
+   --clr-error-700: #b91c1c;
+
+   /* DELETE */
+   --clr-delete-50: #fef2f2;
+   --clr-delete-100: #fee2e2;
+   --clr-delete-200: #fecaca;
+   --clr-delete-300: #fca5a5;
+   --clr-delete-400: #f87171;
+   --clr-delete-500: #ef4444;
+   --clr-delete-600: #dc2626;
+   --clr-delete-700: #b91c1c;
+
+
+   /* MENU */
+
+   /* OVERLAY */
+   --clr-overlay-menu-dark-40: rgba(0, 0, 0, 0.40);
+
+   /* PURPLE */
+   --clr-multiple-menu-50: #faf5ff;
+   --clr-multiple-menu-100: #f3e8ff;
+   --clr-multiple-menu-200: #efd8ff;
+   --clr-multiple-menu-400: #c084fc;
+   --clr-multiple-menu-500: #a855f7;
+   --clr-multiple-menu-600: #9333ea;
+
+   --clr-multiple-menu-400-30: rgba(192, 132, 252, 0.30);
+
+   /* CYAN */
+   --clr-csv-menu-50: #ecfeff;
+   --clr-csv-menu-100: #cffafe;
+   --clr-csv-menu-200: #a5f3fc;
+   --clr-csv-menu-300: #67e8f9;
+   --clr-csv-menu-400: #22d3ee;
+   --clr-csv-menu-500: #06b6d4;
+   --clr-csv-menu-600: #0891b2;
+   --clr-csv-menu-700: #0e7490;
+
+   --clr-csv-menu-50-40: rgba(236, 254, 255, 0.40);
+   --clr-csv-menu-400-30: rgba(34, 211, 238, 0.30);
+}
+
+.dark-theme {
+   /* BACKGROUNDS — de negro profundo a gris claro */
+   --clr-bg-0: #000000;
+   --clr-bg-50: #0a0d12;
+   --clr-bg-100: #0d1117;
+   --clr-bg-200: #111827;
+   --clr-bg-300: #1a2233;
+   --clr-bg-400: #1e293b;
+   --clr-bg-500: #2d3748;
+   --clr-bg-600: #374151;
+   --clr-bg-700: #4b5563;
+   --clr-bg-800: #6b7280;
+   --clr-bg-900: #9ca3af;
+   --clr-bg-1000: #ffffff;
+
+   /* TEXT — invertido: 0 oscuro, 900 casi blanco */
+   --clr-text-0: #000000;
+   --clr-text-50: #0d1117;
+   --clr-text-100: #1a2233;
+   --clr-text-200: #2d3748;
+   --clr-text-300: #4b5563;
+   --clr-text-400: #6b7280;
+   --clr-text-500: #9ca3af;
+   --clr-text-600: #cbd5e1;
+   --clr-text-700: #e2e8f0;
+   --clr-text-800: #f1f5f9;
+   --clr-text-900: #f9fafb;
+
+   /* BORDERS — sutiles sobre fondos oscuros */
+   --clr-border-0: #000000;
+   --clr-border-50: #0d1117;
+   --clr-border-100: #1a2233;
+   --clr-border-200: #1e293b;
+   --clr-border-300: #2d3748;
+   --clr-border-400: #3d4f65;
+   --clr-border-500: #4b5a72;
+
+   /* PRIMARY */
+   --clr-primary-100: #1d2f43;
+
+   /* SINGLE */
+   --clr-single-option-bg: rgba(255, 255, 255, 0.04);
+   --clr-single-option-bg-hover: rgba(255, 255, 255, 0.08);
+
+   --clr-single-option-border: rgba(255, 255, 255, 0.08);
+   --clr-single-option-border-hover: var(--clr-primary-400);
+
+   --clr-single-option-text-title: #e5e7eb;
+   --clr-single-option-text-sub: #94a3b8;
+
+   --clr-single-option-icon-bg: rgba(59, 130, 246, 0.12);
+   --clr-single-option-icon-bg-hover: rgba(59, 130, 246, 0.18);
+
+   --clr-single-option-icon: #60a5fa;
+
+   --clr-single-option-shadow: rgba(0, 0, 0, 0.45);
+
+   --clr-single-option-chevron: #93c5fd;
+
+   --clr-single-option-glow: rgba(59, 130, 246, 0.10);
+
+   --clr-single-option-focus: #60a5fa;
+
+   /* MULTIPLE */
+   --clr-multiple-option-bg: rgba(255, 255, 255, 0.04);
+   --clr-multiple-option-bg-hover: rgba(255, 255, 255, 0.09);
+
+   --clr-multiple-option-border: rgba(255, 255, 255, 0.08);
+   --clr-multiple-option-border-hover: var(--clr-multiple-menu-400);
+
+   --clr-multiple-option-text-title: #e5e7eb;
+   --clr-multiple-option-text-sub: #94a3b8;
+
+   --clr-multiple-option-icon-bg: rgba(99, 102, 241, 0.14);
+   --clr-multiple-option-icon-bg-hover: rgba(99, 102, 241, 0.22);
+
+   --clr-multiple-option-icon: #a5b4fc;
+
+   --clr-multiple-option-chevron: #c7d2fe;
+
+   --clr-multiple-option-glow: rgba(99, 102, 241, 0.10);
+
+   --clr-multiple-option-focus: rgba(99, 102, 241, 0.35);
+
+   --clr-multiple-option-shadow: rgba(0, 0, 0, 0.5);
+
+   /* CSV */
+   --clr-csv-option-bg: rgba(255, 255, 255, 0.04);
+   --clr-csv-option-bg-hover: rgba(255, 255, 255, 0.08);
+
+   --clr-csv-option-border: rgba(255, 255, 255, 0.08);
+   --clr-csv-option-border-hover: var(--clr-csv-menu-200);
+
+   --clr-csv-option-text-title: #e5e7eb;
+   --clr-csv-option-text-sub: #94a3b8;
+
+   --clr-csv-option-icon-bg: rgba(59, 130, 246, 0.12);
+   --clr-csv-option-icon-bg-hover: rgba(59, 212, 246, 0.18);
+
+   --clr-csv-option-icon: var(--clr-csv-menu-600);
+
+   --clr-csv-option-chevron: var(--clr-csv-menu-400);
+
+   --clr-csv-option-glow: rgba(59, 227, 246, 0.1);
+
+   --clr-csv-option-focus: rgba(59, 218, 246, 0.164);
+
+   --clr-csv-option-shadow: rgba(0, 0, 0, 0.5);
+
+   /* SUCCESS */
+   --clr-success-500: #22c55e;
+   --clr-success-600: #4ade80;
+
+   /* WARNING */
+   --clr-warning-50: #1c1000;
+   --clr-warning-100: #2d1d00;
+   --clr-warning-200: #fbbf24;
+   --clr-warning-700: #fcd34d;
+   --clr-warning-800: #fde68a;
+
+   /* ERROR */
+   --clr-error-50: #450a0a;
+   --clr-error-100: #5c1212;
+   --clr-error-200: #7f1d1d;
+   --clr-error-300: #991b1b;
+   --clr-error-400: #dc2626;
+   --clr-error-500: #ef4444;
+   --clr-error-600: #f87171;
+   --clr-error-700: #fca5a5;
+
+   /* DELETE */
+   --clr-delete-50: #450a0a;
+   --clr-delete-100: #5c1212;
+   --clr-delete-200: #7f1d1d;
+   --clr-delete-300: #991b1b;
+   --clr-delete-400: #dc2626;
+   --clr-delete-500: #ef4444;
+   --clr-delete-600: #f87171;
+   --clr-delete-700: #fca5a5;
+
+   /* MENU */
+
+   /* OVERLAY */
+   --clr-overlay-menu-dark-40: rgba(0, 0, 0, 0.60);
+
+   /* PURPLE */
+   --clr-multiple-menu-50: #1a0a2e;
+   --clr-multiple-menu-100: #2d1354;
+   --clr-multiple-menu-200: #3d1d73;
+   --clr-multiple-menu-400: #7c3aed;
+   --clr-multiple-menu-500: #a855f7;
+   --clr-multiple-menu-600: #c084fc;
+
+   --clr-multiple-menu-400-30: rgba(124, 58, 237, 0.30);
+
+   /* CYAN */
+   --clr-csv-menu-50: #041f26;
+   --clr-csv-menu-100: #083344;
+   --clr-csv-menu-200: #0e4d63;
+   --clr-csv-menu-300: #155e75;
+   --clr-csv-menu-400: #0891b2;
+   --clr-csv-menu-500: #22d3ee;
+   --clr-csv-menu-600: #67e8f9;
+   --clr-csv-menu-700: #a5f3fc;
+
+   --clr-csv-menu-50-40: rgba(4, 31, 38, 0.60);
+   --clr-csv-menu-400-30: rgba(8, 145, 178, 0.30);
+}
