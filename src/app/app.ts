@@ -11,4 +11,5 @@ export class App {
   protected readonly title = signal('SistemaMonitoreo');
 }
 
-export const baseUrl = "https://localhost:7137";
+// export const baseUrl = "https://localhost:7137";
+export const baseUrl = "https://apisistemamonitoreocsharp.onrender.com";

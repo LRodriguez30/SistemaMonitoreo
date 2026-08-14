@@ -57,8 +57,6 @@ export class Ventas {
     constructor(
         private readonly ventasService: VentasService
     ) {
-        this.dataSource.filterPredicate =
-            this.globalFilterPredicate();
         this.loadData();
     }
 
@@ -491,8 +489,10 @@ export class Ventas {
 
     isFilterOpen = signal(false);
     activeFilterCount = signal(0);
+    isFilterDiscardWarningOpen = signal(false);
 
     filterState = this.filterEngine.createState();
+    savedFilterState = structuredClone(this.filterState);
     readonly filterRules = this.filterEngine.rules;
 
     toggleMulti(field: VentaFilterKey, valor: string) {
@@ -546,13 +546,58 @@ export class Ventas {
         }, 16)
     }
 
-    closeFilter() {
+    closeFilterDiscardWarning() {
+        this.isFilterDiscardWarningOpen.set(false);
+    }
+
+    closeFilter(discardConfirmation: boolean = false) {
+        const changes = JSON.stringify(this.filterState) != JSON.stringify(this.savedFilterState);
+        console.log(this.filterState, this.savedFilterState, changes)
+
+        if (changes) {
+
+            if (this.confirmFilterDiscard(discardConfirmation)) return;
+            this.isFilterDiscardWarningOpen.set(true);
+            return;
+        }
+
+        if (this.confirmFilterDiscard(discardConfirmation)) return;
+
         this.closeModal("filter");
+    }
+
+    confirmFilterDiscard(discardConfirmation: boolean): boolean {
+        if (discardConfirmation) {
+            this.filterState = structuredClone(this.savedFilterState);
+            this.closeFilterDiscardWarning();
+            this.closeModal("filter");
+            return true;
+        }
+        else return false;
     }
 
     applyFilter() {
         const f = this.filterState;
 
+        this.loadFilters(f);
+
+        let count = 0;
+        if (f.estado.length > 0) count += f.estado.length;
+        if (f.metodoPago.length > 0) count += f.metodoPago.length;
+        if (f.total.min !== null || f.total.max !== null) count++;
+        if (f.fechaVenta.from || f.fechaVenta.to) count++;
+        if (f.idSucursal) count++;
+        if (f.idCliente) count++;
+
+        this.activeFilterCount.set(count);
+
+        this.savedFilterState = structuredClone(this.filterState);
+
+        this.closeFilter();
+    }
+
+    searchText = signal('');
+    loadFilters(f: any) {
         this.dataSource.filterPredicate = (row: VentasResponse) => {
 
             const totalRaw = row.total;
@@ -584,17 +629,6 @@ export class Ventas {
         };
 
         this.dataSource.filter = 'active';
-
-        let count = 0;
-        if (f.estado.length > 0) count++;
-        if (f.metodoPago.length > 0) count++;
-        if (f.total.min !== null || f.total.max !== null) count++;
-        if (f.fechaVenta.from || f.fechaVenta.to) count++;
-        if (f.idSucursal) count++;
-        if (f.idCliente) count++;
-
-        this.activeFilterCount.set(count);
-        this.closeFilter();
     }
 
     clearFilter() {
@@ -607,6 +641,7 @@ export class Ventas {
             idVenta: '',
             idCliente: ''
         };
+        this.savedFilterState = structuredClone(this.filterState);
 
         this.dataSource.filter = '';
         this.activeFilterCount.set(0);
@@ -620,7 +655,11 @@ export class Ventas {
                 .trim()
                 .toLowerCase();
 
-        this.dataSource.filter = value;
+        this.searchText.set(value);
+
+        this.loadFilters(this.filterState);
+
+        this.dataSource.filter = value || 'active';
     }
 
     private globalFilterPredicate() {
